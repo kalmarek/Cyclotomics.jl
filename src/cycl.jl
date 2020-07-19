@@ -92,7 +92,7 @@ end
 # general definitions for iteration
 function Base.iterate(α::Cyclotomic, state = 0)
     idx = findnext(!iszero, coeffs(α), state + 1)
-    isnothing(idx) && return nothing
+    idx === nothing && return nothing
     return (idx - 1, coeffs(α)[idx]), idx
 end
 
