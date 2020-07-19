@@ -191,6 +191,10 @@ import Cyclotomics.Cyclotomic
             Cyclotomics.normalform!(x)
             @test conductor(Cyclotomics.reduced_embedding(x)) == 9
         end
+
+        @test conductor(Cyclotomics.reduced_embedding(E(6))) == 3
+        @test conductor(Cyclotomics.reduced_embedding(E(14))) == 7
+        @test conductor(Cyclotomics.reduced_embedding(E(1234))) == 617
     end
 
     @testset "tests against GAP" begin

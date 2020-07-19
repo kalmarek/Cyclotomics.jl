@@ -79,25 +79,24 @@ function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where T
 
     all(iszero, exponents(α)) && return Cyclotomic{T, Vector{T}}(1, [α[0]])
 
-    k = gcd(exponents(α)...)
+    k = gcd(conductor(α), exponents(α)...)
     @debug "gcd(exponents(α)) = $k" collect(exponents(α))
 
-    tmp = let (d,r) = divrem(conductor(α), k)
-        if (k > 1 && iszero(r))
-            @debug "Reducing the embedding ring to $T(ζ$(subscriptify(d)))"
-            tmp = Cyclotomic{T, Vector{T}}(d, zeros(T, d))
-        else
-            n = conductor(α)
-            tmp = Cyclotomic{T, Vector{T}}(n, zeros(T, n))
-        end
-        tmp # tmp has dense storage
+    tmp = if k > 1
+        d = div(conductor(α), k)
+        @debug "Reducing the embedding ring to $T(ζ$(subscriptify(d)))"
+        tmp = Cyclotomic{T,Vector{T}}(d, zeros(T, d))
+    else
+        n = conductor(α)
+        tmp = Cyclotomic{T,Vector{T}}(n, zeros(T, n))
     end
+    # now tmp has dense storage
 
     if k > 1
         # the trivial reduction E(n)^e → E(n÷k)^(e÷k)
         @debug "Performing trivial reduction from ℚ(ζ$(subscriptify(conductor(α)))) → ℚ(ζ$(subscriptify(conductor(tmp))))"
-        @inbounds for (e,v) in α
-            tmp[div(e,k)] = α[e]
+        @inbounds for (e, v) in α
+            tmp[div(e, k)] = v
         end
     else
         @debug "No trivial reduction is possible"
@@ -107,16 +106,12 @@ function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where T
 end
 
 """
-    reduced_embedding(α::Cyclotomic{T,V}[, m::Integer=1[,
-        tmp = _tmp_for_reduced_embedding(normalform!(α))]])
+    reduced_embedding(α::Cyclotomic{T,V}[, m::Integer=1])
 Return the reduced embedding of `α` into `m`-th cyclotomic field.
-
-If temporary element `tmp` is provided, then
- * `α` must already be in its normal form, and
- * `gcd(exponents(α)) == 1`, so that no trivial reduction is possible.
 """
-function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1,
-    tmp = _tmp_for_reduced_embedding(normalform!(α))) where {T, V}
+function reduced_embedding(α::Cyclotomic{T,V}, m::Integer = 1) where {T,V}
+
+    tmp = _tmp_for_reduced_embedding(normalform!(α))
 
     if conductor(tmp) == 1
         res = Cyclotomic{T, V}(conductor(tmp), coeffs(tmp))
@@ -147,6 +142,7 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer=1,
     end
 
     for (p,q,fb_res) in forbidden
+        p == 2 && continue
         n = conductor(tmp)
         nz = count(!iszero, coeffs(tmp))
 
