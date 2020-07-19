@@ -210,7 +210,7 @@ import Cyclotomics.Cyclotomic
 
         @test E(5) + E(3) == -E(15)^2-2*E(15)^8-E(15)^11-E(15)^13-E(15)^14
         @test (E(5) + E(5)^4) ^ 2 == -2*E(5)-E(5)^2-E(5)^3-2*E(5)^4
-        @test_broken E(5) / E(3) == E(15)^13
+        @test E(5) / E(3) == E(15)^13
         @test E(5) * E(3) == E(15)^8
     end
 

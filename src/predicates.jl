@@ -4,6 +4,8 @@ function Base.hash(α::Cyclotomic, h::UInt)
 end
 
 function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
+    coeffs(α) == coeffs(β) && return true
+
     if conductor(α) == conductor(β)
         normalform!(α)
         normalform!(β)

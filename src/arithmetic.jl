@@ -141,3 +141,5 @@ function inv!(out::Cyclotomic{T, <:DenseVector}, α::Cyclotomic, tmp=similar(out
 end
 
 Base.inv(α::Cyclotomic) = inv!(similar(α), α)
+
+Base.:/(α::Cyclotomic, β::Cyclotomic) = α * inv(β)
