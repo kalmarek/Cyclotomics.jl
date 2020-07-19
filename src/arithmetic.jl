@@ -1,9 +1,9 @@
 ####
 #   Arithmetic
 
-zero!(α::Cyclotomic{T}) where T = (coeffs(α) .= zero(T); α)
-one!(α::Cyclotomic{T}) where T = (zero!(α); α[0] = one(α[0]); α)
-Base.zero(α::Cyclotomic, m::Integer=conductor(α)) = zero!(similar(α, m))
+zero!(α::Cyclotomic{T}) where {T} = (coeffs(α) .= zero(T); α)
+one!(α::Cyclotomic{T}) where {T} = (zero!(α); α[0] = one(α[0]); α)
+Base.zero(α::Cyclotomic, m::Integer = conductor(α)) = zero!(similar(α, m))
 Base.one(α::Cyclotomic) = one!(similar(α))
 
 ############################
@@ -13,7 +13,7 @@ Base.:-(α::Cyclotomic) = Cyclotomic(-coeffs(α))
 
 for op in (:+, :-)
     @eval begin
-        function Base.$op(α::Cyclotomic{T}, r::R) where {T, R<:Real}
+        function Base.$op(α::Cyclotomic{T}, r::R) where {T,R<:Real}
             res = similar(α, promote_type(T, R))
             copyto!(coeffs(res), coeffs(α))
             res[0] = $op(res[0], r)
@@ -31,15 +31,13 @@ div!(out::Cyclotomic, α::Cyclotomic, c::Real) =
     (coeffs(out) .= div.(coeffs(α), c); out)
 
 Base.:*(c::T, α::Cyclotomic{S}) where {S,T<:Real} =
-    mul!(similar(α, promote_type(S,T)), α, c)
-Base.:*(α::Cyclotomic, c::T) where T<:Real = c*α
-Base.:(//)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α).//c)
-Base.:(/)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α)./c)
+    mul!(similar(α, promote_type(S, T)), α, c)
+Base.:*(α::Cyclotomic, c::T) where {T<:Real} = c * α
+Base.:(//)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) .// c)
+Base.:(/)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) ./ c)
 
-function Base.div(α::Cyclotomic, c::Number)
-    res = similar(α, first(Base.return_types(div, (valtype(α), typeof(c)))))
-    return div!(res, α, c)
-end
+Base.div(α::Cyclotomic, c::Number) =
+    (T = typeof(div(α[0]), c); div!(similar(α, T), α, c))
 
 ###########################
 # Ring structure:
@@ -49,7 +47,7 @@ add!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
 sub!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
     (coeffs(out) .= coeffs(α) .- coeffs(β); out)
 
-function mul!(out::Cyclotomic{T}, α::Cyclotomic, β::Cyclotomic) where T
+function mul!(out::Cyclotomic{T}, α::Cyclotomic, β::Cyclotomic) where {T}
     copyto!(coeffs(out), coeffs(mul!(dense(out), α, β)))
     return out
 end
@@ -76,7 +74,7 @@ end
 for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
     @eval begin
         function Base.$op(α::Cyclotomic{T}, β::Cyclotomic{S}) where {T,S}
-            if conductor(α)==conductor(β)
+            if conductor(α) == conductor(β)
                 return $fn(similar(α, promote_type(T, S)), α, β)
             else
                 l = lcm(conductor(α), conductor(β))
@@ -86,7 +84,7 @@ for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
     end
 end
 
-function Base.conj!(out::Cyclotomic, α::Cyclotomic, n::Integer=-1)
+function Base.conj!(out::Cyclotomic, α::Cyclotomic, n::Integer = -1)
     zero!(out)
     for (exp, c) in α
         out[n*exp] = c
@@ -94,32 +92,46 @@ function Base.conj!(out::Cyclotomic, α::Cyclotomic, n::Integer=-1)
     return out
 end
 
-function Base.conj(α::Cyclotomic, n::Integer=-1)
+"""
+    conj(α::Cyclotomic[, n::Integer=1])
+Return the `n`-th conjugate of `α`, i.e. the image of `α` under the `n`-th
+Frobenious homomorphism.
+
+If `n` is co-prime to the conductor of `α` the map defines Galois automorphism.
+Note that the default choice for `n=-1` corresponds to the standard complex
+conjugation.
+"""
+function Base.conj(α::Cyclotomic, n::Integer = -1)
     return conj!(similar(α), α, n)
 end
 
-galois_conj(α::Cyclotomic, n::Integer=-1) =
+galois_conj(α::Cyclotomic, n::Integer = -1) =
     (@assert gcd(n, conductor(α)) == 1; conj(α, n))
 
-function inv!(out::Cyclotomic{T}, α::Cyclotomic) where T
+function inv!(out::Cyclotomic{T}, α::Cyclotomic) where {T}
     copyto!(coeffs(out), coeffs(inv!(dense(out), α)))
     return out
 end
 
-function inv!(out::Cyclotomic{T, <:DenseVector}, α::Cyclotomic, tmp=similar(out)) where T
+function inv!(
+    out::Cyclotomic{T,<:DenseVector},
+    α::Cyclotomic,
+    tmp = similar(out),
+    tmp2 = similar(out)
+) where {T}
     if out === α
-        out = similar(out)
+        out = one(out)
+    else
+        out = one!(out)
     end
 
-    one!(out)
-    tmp2 = deepcopy(out)
     basis, fb = zumbroich_viacomplement(conductor(α))
     lb = length(basis)
     conjugates_counter = 0
 
-    for i in 2:conductor(α)-1
-        conjugates_counter == lb-1 && break
-        any(x->gcd(i, first(x)) > 1, fb) && continue
+    for i = 2:conductor(α)-1
+        conjugates_counter == lb - 1 && break
+        any(x -> gcd(i, first(x)) > 1, fb) && continue
         conjugates_counter += 1
         mul!(tmp2, out, conj!(tmp, α, i))
         copyto!(coeffs(out), coeffs(tmp2))
@@ -140,6 +152,7 @@ function inv!(out::Cyclotomic{T, <:DenseVector}, α::Cyclotomic, tmp=similar(out
     return out
 end
 
-Base.inv(α::Cyclotomic) = inv!(similar(α), α)
+Base.inv(α::Cyclotomic{T}) where {T} =
+    (RT = typeof(inv(α[0])); inv!(similar(α, RT), α))
 
 Base.:/(α::Cyclotomic, β::Cyclotomic) = α * inv(β)

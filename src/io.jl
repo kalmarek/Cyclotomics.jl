@@ -8,23 +8,23 @@ end
 
 function superscriptify(n::Int)
     superscripts = Dict(
-    0 => "⁰",
-    1 => "¹",
-    2 => "²",
-    3 => "³",
-    4 => "⁴",
-    5 => "⁵",
-    6 => "⁶",
-    7 => "⁷",
-    8 => "⁸",
-    9 => "⁹",
-)
+        0 => "⁰",
+        1 => "¹",
+        2 => "²",
+        3 => "³",
+        4 => "⁴",
+        5 => "⁵",
+        6 => "⁶",
+        7 => "⁷",
+        8 => "⁸",
+        9 => "⁹",
+    )
     return join(superscripts[d] for d in reverse(digits(n)))
 end
 
-function Base.show(io::IO, α::Cyclotomic{T}) where T
+function Base.show(io::IO, α::Cyclotomic{T}) where {T}
     α = reduced_embedding(α)
-    ζ = "ζ"*subscriptify(conductor(α))
+    ζ = "ζ" * subscriptify(conductor(α))
     if iszero(α)
         print(io, zero(T))
     else
