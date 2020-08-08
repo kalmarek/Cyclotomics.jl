@@ -278,4 +278,20 @@ import Cyclotomics.Cyclotomic
 
         @test ComplexF64(x)^2 ≈ ComplexF64(x^2)
     end
+
+    @testset "dense/sparse" begin
+        x = E(3)
+        @test Cyclotomics.dense(x) isa Cyclotomics.Cyclotomic{Int, <:DenseVector}
+        y = Cyclotomics.dense(x)
+        @test Cyclotomics.sparse(y) isa Cyclotomics.Cyclotomic{Int, <:Cyclotomics.SparseVector}
+
+        @test coeffs(x) isa Cyclotomics.SparseVector
+        @test coeffs(Cyclotomics.sparse(y)) isa Cyclotomics.SparseVector
+
+        @test coeffs(y) isa Vector
+        @test coeffs(Cyclotomics.dense(x)) isa Vector
+
+        @test x == y
+
+    end
 end

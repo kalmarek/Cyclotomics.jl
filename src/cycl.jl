@@ -127,6 +127,13 @@ Return a copy of `α` with coefficients stored in dense `Vector`.
 dense(α::Cyclotomic{T}) where {T} =
     Cyclotomic{T,Vector{T}}(conductor(α), coeffs(α))
 
+"""
+    sparse(α::Cyclotomic)
+Return a copy of `α` with coefficients stored in `SparseVector`.
+"""
+SparseArrays.sparse(α::Cyclotomic) = Cyclotomic(sparse(coeffs(α)))
+
+
 function Base.float(α::Cyclotomic)
     β = reduced_embedding(α)
     isreal(β) && return float(β[0])
