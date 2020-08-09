@@ -254,4 +254,44 @@ import Cyclotomics.Cyclotomic
             @test inv(y)*x == inv(x)*x == one(x)
         end
     end
+
+    @testset "Conversions to julia types" begin
+        x = E(3)
+        y = x + x^2
+
+        @test Int(y) == -1
+        @test y == -1
+        @test_throws InexactError Int(x)
+
+        @test float(y) == -1.0
+        @test y == -1.0
+        @test_throws InexactError float(x)
+
+        @test Float64(y) == -1.0
+        # @test y == -1.0
+        @test_throws InexactError Float64(x)
+
+        @test ComplexF64(x) isa ComplexF64
+        @test Complex{BigFloat}(x) isa Complex{BigFloat}
+        γ = 2*big(π)/3
+        @test Complex{BigFloat}(x) ≈ cos(γ) + im*sin(γ)
+
+        @test ComplexF64(x)^2 ≈ ComplexF64(x^2)
+    end
+
+    @testset "dense/sparse" begin
+        x = E(3)
+        @test Cyclotomics.dense(x) isa Cyclotomics.Cyclotomic{Int, <:DenseVector}
+        y = Cyclotomics.dense(x)
+        @test Cyclotomics.sparse(y) isa Cyclotomics.Cyclotomic{Int, <:Cyclotomics.SparseVector}
+
+        @test coeffs(x) isa Cyclotomics.SparseVector
+        @test coeffs(Cyclotomics.sparse(y)) isa Cyclotomics.SparseVector
+
+        @test coeffs(y) isa Vector
+        @test coeffs(Cyclotomics.dense(x)) isa Vector
+
+        @test x == y
+
+    end
 end

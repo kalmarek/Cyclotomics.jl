@@ -66,6 +66,12 @@ function _replace_exponent!(α::Cyclotomic, exp::Integer, fb)
     return α
 end
 
+"""
+    embed(α::Cyclotomic, m::Integer)
+Embed `α` into the `m`-th cyclotomic field. `m` can be either larger, or smaller
+than the conductor of `α`, however either `conductor(α)` must divide `m`, or
+the other way around.
+"""
 function embed(α::Cyclotomic, m::Integer)
     conductor(α) == m && return deepcopy(α)
     if conductor(α) > m

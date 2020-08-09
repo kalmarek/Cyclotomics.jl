@@ -126,3 +126,38 @@ Return a copy of `α` with coefficients stored in dense `Vector`.
 """
 dense(α::Cyclotomic{T}) where {T} =
     Cyclotomic{T,Vector{T}}(conductor(α), coeffs(α))
+
+"""
+    sparse(α::Cyclotomic)
+Return a copy of `α` with coefficients stored in `SparseVector`.
+"""
+SparseArrays.sparse(α::Cyclotomic) = Cyclotomic(sparse(coeffs(α)))
+
+
+function Base.float(α::Cyclotomic)
+    β = reduced_embedding(α)
+    isreal(β) && return float(β[0])
+    throw(InexactError(:float, AbstractFloat, α))
+end
+
+for f in (:Int, :Float64)
+    q = QuoteNode(f)
+    @eval begin
+        function Base.$f(α::Cyclotomic)
+            β = reduced_embedding(α)
+            isreal(β) && return $f(β[0])
+            throw(InexactError($q, $f, α))
+        end
+    end
+end
+
+function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
+    z = zero(Complex{T})
+    rα = reduced_embedding(α)
+    n = conductor(rα)
+    for (e, c) in rα
+        γ = 2 * T(π) * T(e) / n
+        z += c * (cos(γ) + im * sin(γ))
+    end
+    return z
+end
