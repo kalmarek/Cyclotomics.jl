@@ -123,6 +123,13 @@ import Cyclotomics.Cyclotomic
         @test 2.0 + x isa Cyclotomic{Float64}
         @test x + 2.0 isa Cyclotomic{Float64}
         @test (x+2.0)[0] == 2.0
+
+        # Bug: normalform! is needed in div
+        x = E(4,0) - E(4,2)
+        @test isone(div(x,2))
+        x = Cyclotomics.embed(5*E(4,0), 60);
+        Cyclotomics.normalform!(x)
+        @test isone(div(x-2, 3))
     end
 
     @testset "*, powering" begin
