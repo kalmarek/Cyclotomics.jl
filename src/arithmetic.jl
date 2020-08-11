@@ -37,7 +37,7 @@ Base.:(//)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) .// c)
 Base.:(/)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) ./ c)
 
 Base.div(α::Cyclotomic, c::Number) =
-    (T = typeof(div(α[0], c)); div!(similar(α, T), α, c))
+    (T = typeof(div(α[0], c)); div!(similar(α, T), normalform!(α), c))
 
 ###########################
 # Ring structure:
