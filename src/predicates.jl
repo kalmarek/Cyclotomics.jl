@@ -16,14 +16,25 @@ function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
     end
 end
 
-Base.:(==)(α::Cyclotomic, x::T) where {T<:Number} = T(α) == x
+Base.:(==)(α::Cyclotomic{T,V}, x::R) where {T,V,R<:Real} =
+    α == Cyclotomic(1, [x])
+Base.:(==)(x::T, α::Cyclotomic) where {T<:Number} = α == x
 
 function Base.isapprox(
     α::Cyclotomic{T},
     x::S;
     atol::Real = 0,
-    rtol::Real = atol > 0 ? 0 : sqrt(max(eps(x), sum(eps, coeffs(α)))),
-) where {T,S<:Real}
+    rtol::Real = atol > 0 ? 0 : sqrt(max(eps(x), maximum(eps, coeffs(α)))),
+) where {T<:AbstractFloat,S<:AbstractFloat}
+    return isapprox(S(α), x; atol = atol, rtol = rtol)
+end
+
+function Base.isapprox(
+    α::Cyclotomic{T},
+    x::S;
+    atol::Real = 0,
+    rtol::Real = atol > 0 ? 0 : eps(x),
+) where {T,S<:AbstractFloat}
     return isapprox(S(α), x; atol = atol, rtol = rtol)
 end
 

@@ -32,6 +32,8 @@ Cyclotomic(v::V) where {V<:AbstractVector} =
 Cyclotomic{T}(α::Cyclotomic) where {T} =
     Cyclotomic(conductor(α), convert.(T, α.coeffs))
 
+Cyclotomic{T, V}(a::R) where {T, V, R<:Real} = Cyclotomic{T, V}(1, [a])
+
 """
     E(n[, i=1])
 Return the `i`-th power of `n`-th root of unity with sparse vector as storage.
@@ -162,3 +164,5 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     end
     return z
 end
+
+Base.abs2(α::Cyclotomic) = α*conj(α)

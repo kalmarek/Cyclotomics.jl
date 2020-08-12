@@ -198,6 +198,13 @@ import Cyclotomics.Cyclotomic
         @test !isreal(E(5,1) + E(5,3))
 
         @test isreal(abs2(E(5,1) + E(5,2)))
+
+        @test 1 == E(5)^5
+        @test E(5)^2+E(5)^3 ≈ (-1-sqrt(5))/2
+        @test E(5)^2+E(5)^3 != (-1-sqrt(5))/2
+        @test float(E(5)^2+E(5)^3) == (-1-sqrt(5))/2
+        @test 2.0(E(5)^2+E(5)^3) ≈ (-1-sqrt(5))
+        @test 2.0(E(5)^2+E(5)^3) != (-1-sqrt(5))
     end
 
     @testset "embedding" begin
