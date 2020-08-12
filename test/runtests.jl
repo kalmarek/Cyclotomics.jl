@@ -183,11 +183,21 @@ import Cyclotomics.Cyclotomic
 
         @test iszero(1 + x - x - 1)
 
-        @test isreal(1+x-x)
         @test isone(sum(-E(5)^i for i in 1:4))
         @test isone(E(5)^5)
         x = E(5)^5
         @test x == sum(-E(5)^i for i in 1:4)
+    end
+
+    @testset "predicates" begin
+
+        @test isreal(1+E(5)-E(5))
+        @test isreal(E(5,1) + E(5,4))
+        @test isreal(E(5,2) + E(5,3))
+        @test !isreal(E(5,1) + E(5,2))
+        @test !isreal(E(5,1) + E(5,3))
+
+        @test isreal(abs2(E(5,1) + E(5,2)))
     end
 
     @testset "embedding" begin

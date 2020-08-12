@@ -133,19 +133,20 @@ Return a copy of `α` with coefficients stored in `SparseVector`.
 """
 SparseArrays.sparse(α::Cyclotomic) = Cyclotomic(sparse(coeffs(α)))
 
-
-function Base.float(α::Cyclotomic)
+function Base.float(::Type{T}, α::Cyclotomic) where T
     β = reduced_embedding(α)
-    isreal(β) && return float(β[0])
+    isreal(β) && return real(Complex{T}(β))
     throw(InexactError(:float, AbstractFloat, α))
 end
+
+Base.float(α::Cyclotomic) = float(Float64, α)
 
 for f in (:Int, :Float64)
     q = QuoteNode(f)
     @eval begin
         function Base.$f(α::Cyclotomic)
             β = reduced_embedding(α)
-            isreal(β) && return $f(β[0])
+            isreal(β) && return $f(real(ComplexF64(β)))
             throw(InexactError($q, $f, α))
         end
     end

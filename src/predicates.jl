@@ -30,7 +30,8 @@ end
 Base.iszero(α::Cyclotomic) =
     all(iszero, values(α)) || (normalform!(α); all(iszero, values(α)))
 
-Base.isreal(α::Cyclotomic) = conductor(reduced_embedding(α)) == 1
+Base.isreal(α::Cyclotomic) =
+    α == conj(α) || conductor(reduced_embedding(α)) == 1
 
 function Base.isone(α::Cyclotomic)
     β = reduced_embedding(α)
