@@ -279,6 +279,26 @@ import Cyclotomics.Cyclotomic
         end
     end
 
+    @testset "Conversions" begin
+
+        Cyc = typeof(E(3))
+
+        @test iszero(Cyc(0))
+        @test isone(Cyc(1))
+        @test isone(Cyc(1.0))
+        @test valtype(Cyc(1.0)) == Int
+        @test zeros(typeof(E(3)), 2, 2) isa Matrix{<:Cyclotomics.Cyclotomic}
+
+        v = [E(3)^i for i in 1:3]
+
+        @test (v[1] = 1.0*E(5)) isa Cyclotomic{Float64}
+        @test eltype(v) <: Cyclotomic{Int}
+        @test v[1] isa Cyclotomic{Int}
+        @test (v[1] = 2.0*E(5)) isa Cyclotomic{Float64}
+        @test v[1] == 2E(5)
+        @test_throws InexactError v[1] = 2.5*E(5)
+    end
+
     @testset "Conversions to julia types" begin
         x = E(3)
         y = x + x^2

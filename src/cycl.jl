@@ -26,9 +26,11 @@ end
 Cyclotomic(v::V) where {V<:AbstractVector} =
     Cyclotomic{eltype(v),V}(length(v), v)
 Cyclotomic{T}(α::Cyclotomic) where {T} =
-    Cyclotomic(conductor(α), convert.(T, α.coeffs))
+    Cyclotomic(conductor(α), convert.(T, coeffs(α)))
+Cyclotomic{T, V}(α::Cyclotomic) where {T, V} =
+    Cyclotomic{T,V}(conductor(α), convert.(T, coeffs(α)))
 
-Cyclotomic{T, V}(a::R) where {T, V, R<:Real} = Cyclotomic{T, V}(1, [a])
+Cyclotomic{T, V}(a::R) where {T, V, R<:Real} = Cyclotomic{T, V}(1, T[a])
 
 """
     E(n[, i=1])
