@@ -22,8 +22,15 @@ for op in (:+, :-)
     end
 end
 
+function Base.:-(r::R, α::Cyclotomic{T}) where {T,R<:Real}
+    res = similar(α, promote_type(T, R))
+    copyto!(coeffs(res), coeffs(α))
+    coeffs(res) .*= -1
+    res[0] += r
+    return res
+end
+
 Base.:+(r::Real, α::Cyclotomic) = α + r
-Base.:-(r::Real, α::Cyclotomic) = (res = -α; res[0] += r; res)
 
 mul!(out::Cyclotomic, α::Cyclotomic, c::Real) =
     (coeffs(out) .= coeffs(α) .* c; out)
@@ -117,7 +124,7 @@ function inv!(
     out::Cyclotomic{T,<:DenseVector},
     α::Cyclotomic,
     tmp = similar(out),
-    tmp2 = similar(out)
+    tmp2 = similar(out),
 ) where {T}
     if out === α
         out = one(out)

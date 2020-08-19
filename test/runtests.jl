@@ -107,6 +107,7 @@ using Cyclotomics
 
         @test 2x isa Cyclotomic{Int}
         @test 2.0x isa Cyclotomic{Float64}
+        @test x*2.0 isa Cyclotomic{Float64}
         @test div(x, 2) isa Cyclotomic{Int}
         @test x//2 isa Cyclotomic{Rational{Int}}
         @test x/2.0 isa Cyclotomic{Float64}
@@ -129,6 +130,7 @@ using Cyclotomics
         @test (1+x)[0] == 1
         @test x + 1 isa Cyclotomic{Int}
         @test 2.0 + x isa Cyclotomic{Float64}
+        @test 2.0 - x isa Cyclotomic{Float64}
         @test x + 2.0 isa Cyclotomic{Float64}
         @test (x+2.0)[0] == 2.0
 
@@ -264,6 +266,9 @@ using Cyclotomics
             E(45)^2+E(45)^3-E(45)^6-E(45)^8+E(45)^11-E(45)^12-2*E(45)^16+
             E(45)^17+E(45)^19+E(45)^21-2*E(45)^24-E(45)^26-E(45)^28+
             2*E(45)^29-E(45)^34+E(45)^37-2*E(45)^42-E(45)^43+E(45)^44
+
+            @test Cyclotomics.galois_conj(x, 1) == x
+            @test_throws AssertionError Cyclotomics.galois_conj(x, 5)
         end
 
         for x = [E(45)^5 + E(45)^10,
