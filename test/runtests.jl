@@ -57,24 +57,30 @@ using Cyclotomics
     end
 
     @testset "io strings" begin
-        @test string(E(5)) == " +1*E(5)^1"
-        @test string(-E(5)) == " -1*E(5)^1"
+        @test sprint(print, E(5)) == " 1*E(5)^1"
+        @test sprint(show, 2E(5)) == " 2*ζ₅"
+        @test sprint(print, -E(5)) == "-1*E(5)^1"
+        @test sprint(show, -E(5)) == "-ζ₅"
 
         using Base.Meta
         x = E(5) + 2E(5)^2
-        @test string(x) == " +1*E(5)^1 +2*E(5)^2"
-        @test eval(Base.Meta.parse(string(x))) == x
+        @test sprint(print, x) == " 1*E(5)^1 +2*E(5)^2"
+        @test sprint(show, x) == " ζ₅ +2*ζ₅²"
+        @test eval(Base.Meta.parse(sprint(print, x))) == x
 
         x = E(5) - 2E(5)^2
-        @test string(x) == " +1*E(5)^1 -2*E(5)^2"
-        @test eval(Base.Meta.parse(string(x))) == x
+        @test sprint(print, x) == " 1*E(5)^1 -2*E(5)^2"
+        @test sprint(show, x) == " ζ₅ -2*ζ₅²"
+        @test eval(Base.Meta.parse(sprint(print, x))) == x
 
-        x = -E(5) + 2E(5)^2
-        @test string(x) == " -1*E(5)^1 +2*E(5)^2"
-        @test eval(Base.Meta.parse(string(x))) == x
+        x = -2E(5) + 2E(5)^2
+        @test sprint(print, x) == "-2*E(5)^1 +2*E(5)^2"
+        @test sprint(show, x) == "-2*ζ₅ +2*ζ₅²"
+        @test eval(Base.Meta.parse(sprint(print, x))) == x
+
     end
 
-    @testset "indexing" begin
+    @testset "indexing and iteration" begin
         x = E(5)
         @test x[0] == 0
         @test x[1] == 1
@@ -90,6 +96,9 @@ using Cyclotomics
         @test x[2] == 3
         @test x[-3] == 3
         @test x[7] == 3
+
+        @test collect(E(6)) == [(1,1)]
+        @test collect(Cyclotomics.normalform!(E(6))) == [(4,-1)]
     end
 
     @testset "aritmetic: +, -, module: *, //" begin
