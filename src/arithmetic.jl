@@ -24,8 +24,7 @@ end
 
 function Base.:-(r::R, α::Cyclotomic{T}) where {T,R<:Real}
     res = similar(α, promote_type(T, R))
-    copyto!(coeffs(res), coeffs(α))
-    coeffs(res) .*= -1
+    coeffs(res) .= -1 .* coeffs(α)
     res[0] += r
     return res
 end
