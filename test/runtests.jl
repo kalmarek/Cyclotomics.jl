@@ -1,6 +1,5 @@
 using Test
 using Cyclotomics
-import Cyclotomics.Cyclotomic
 
 @testset "Cyclotomics" begin
 
@@ -240,7 +239,7 @@ import Cyclotomics.Cyclotomic
 
     @testset "conjugation and inverse" begin
 
-        function rand1(α::Cyclotomics.Cyclotomic, u::AbstractRange, k=5)
+        function rand1(α::Cyclotomic, u::AbstractRange, k=5)
             x = zero(eltype(u))*α
             for (idx, c) in zip(rand(0:conductor(α), k), rand(u, k))
                 x[idx] = c
@@ -287,7 +286,7 @@ import Cyclotomics.Cyclotomic
         @test isone(Cyc(1))
         @test isone(Cyc(1.0))
         @test valtype(Cyc(1.0)) == Int
-        @test zeros(typeof(E(3)), 2, 2) isa Matrix{<:Cyclotomics.Cyclotomic}
+        @test zeros(typeof(E(3)), 2, 2) isa Matrix{<:Cyclotomic}
 
         v = [E(3)^i for i in 1:3]
 
@@ -325,9 +324,9 @@ import Cyclotomics.Cyclotomic
 
     @testset "dense/sparse" begin
         x = E(3)
-        @test Cyclotomics.dense(x) isa Cyclotomics.Cyclotomic{Int, <:DenseVector}
+        @test Cyclotomics.dense(x) isa Cyclotomic{Int, <:DenseVector}
         y = Cyclotomics.dense(x)
-        @test Cyclotomics.sparse(y) isa Cyclotomics.Cyclotomic{Int, <:Cyclotomics.SparseVector}
+        @test Cyclotomics.sparse(y) isa Cyclotomic{Int, <:Cyclotomics.SparseVector}
 
         @test coeffs(x) isa Cyclotomics.SparseVector
         @test coeffs(Cyclotomics.sparse(y)) isa Cyclotomics.SparseVector
@@ -336,6 +335,5 @@ import Cyclotomics.Cyclotomic
         @test coeffs(Cyclotomics.dense(x)) isa Vector
 
         @test x == y
-
     end
 end
