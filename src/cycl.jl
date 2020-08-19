@@ -17,10 +17,6 @@ To access the internals of a cyclotomic use API functions:
 
 Iteration over non-zero coefficients in `Cyclotomic` is provided by `iterate`
 which produces pairs `(exp, coeff)` of exponent and corresponding coefficient.
-
-!!! warning "Beware!"
-
-    `hash` function will not reduce a cyclotomic to its minimal embedding field, as this may be a very expensive operation, and will compute the `hash` of a cyclotomic _at current embeding_. Therefore _equal cyclotomics_ in different embeddings may have _different hashes_! To avoid this pitfall use `normalform!(α, minimalfield(α))`.
 """
 struct Cyclotomic{T,A<:AbstractVector{T}} <: Number
     n::Int

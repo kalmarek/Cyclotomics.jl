@@ -1,6 +1,12 @@
+"""
+    hash(α::Cyclotomic[, h::UInt])
+
+A basic hashing function for cyclotomic elements; Note that unlike the `Base` types hashing of `Cyclotomic`s is expensive as it necessitates reducing to minimal embeding.
+This is to keep `hash`ing consistent and reliable with respect to `==`, i.e. that the equality of elements implies the equality of `hash`es.
+"""
 function Base.hash(α::Cyclotomic, h::UInt)
-    normalform!(α)
-    return hash(coeffs(α), hash(conductor(α), hash(Cyclotomic, h)))
+    β = reduced_embedding(α)
+    return hash(coeffs(β), hash(conductor(β), hash(Cyclotomic, h)))
 end
 
 function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
