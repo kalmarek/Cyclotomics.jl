@@ -22,9 +22,8 @@ function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
     end
 end
 
-Base.:(==)(α::Cyclotomic{T,V}, x::R) where {T,V,R<:Real} =
-    α == Cyclotomic(1, [x])
-Base.:(==)(x::T, α::Cyclotomic) where {T<:Number} = α == x
+Base.:(==)(α::Cyclotomic{T}, x::R) where {T,R<:Real} = α == Cyclotomic(1, [x])
+Base.:(==)(x::Real, α::Cyclotomic) = α == x
 
 function Base.isapprox(
     α::Cyclotomic{T},

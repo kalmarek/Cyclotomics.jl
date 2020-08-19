@@ -27,10 +27,10 @@ Cyclotomic(v::V) where {V<:AbstractVector} =
     Cyclotomic{eltype(v),V}(length(v), v)
 Cyclotomic{T}(α::Cyclotomic) where {T} =
     Cyclotomic(conductor(α), convert.(T, coeffs(α)))
-Cyclotomic{T, V}(α::Cyclotomic) where {T, V} =
+Cyclotomic{T,V}(α::Cyclotomic) where {T,V} =
     Cyclotomic{T,V}(conductor(α), convert.(T, coeffs(α)))
 
-Cyclotomic{T, V}(a::R) where {T, V, R<:Real} = Cyclotomic{T, V}(1, T[a])
+Cyclotomic{T,V}(a::R) where {T,V,R<:Real} = Cyclotomic{T,V}(1, T[a])
 
 """
     E(n[, i=1])
@@ -133,7 +133,7 @@ Return a copy of `α` with coefficients stored in `SparseVector`.
 """
 SparseArrays.sparse(α::Cyclotomic) = Cyclotomic(sparse(coeffs(α)))
 
-function Base.float(::Type{T}, α::Cyclotomic) where T
+function Base.float(::Type{T}, α::Cyclotomic) where {T}
     β = reduced_embedding(α)
     isreal(β) && return real(Complex{T}(β))
     throw(InexactError(:float, AbstractFloat, α))
@@ -163,4 +163,4 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     return z
 end
 
-Base.abs2(α::Cyclotomic) = α*conj(α)
+Base.abs2(α::Cyclotomic) = α * conj(α)
