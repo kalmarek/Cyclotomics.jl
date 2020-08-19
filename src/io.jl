@@ -35,35 +35,35 @@ function Base.show(io::IO, α::Cyclotomic{T}) where {T}
                 continue
             end
             if isone(coeff)
-                sign_str = i == 1 ? "" : "+"
+                sign_str = i == 1 ? " " : " +"
                 coeff_str = ""
             elseif isone(-coeff)
                 sign_str = "-"
                 coeff_str = ""
             elseif coeff > zero(coeff)
-                sign_str = "+"
+                sign_str = i == 1 ? " " : " +"
                 coeff_str = "$coeff*"
             else
-                sign_str = ""
+                sign_str = i == 1 ? "" : " "
                 coeff_str = "$coeff*"
             end
 
             exp_str = isone(exp) ? "" : "$(superscriptify(exp))"
-            print(io, " ", sign_str, coeff_str, ζ, exp_str)
+            print(io, sign_str, coeff_str, ζ, exp_str)
         end
     end
 end
 
 function Base.print(io::IO, α::Cyclotomic)
     E_str = "E($(conductor(α)))"
-    for exp in exponents(α)
+    for (i, exp) in enumerate(exponents(α))
         coeff = α[exp]
         if coeff > zero(coeff)
-            sign_str = "+"
+            sign_str = i == 1 ? " " : " +"
         else
-            sign_str = ""
+            sign_str = i == 1 ? "" : " "
         end
 
-        print(io, " ", sign_str, coeff, "*", E_str, "^", exp)
+        print(io, sign_str, coeff, "*", E_str, "^", exp)
     end
 end

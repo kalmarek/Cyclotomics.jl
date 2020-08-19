@@ -1,6 +1,5 @@
 using Test
 using Cyclotomics
-import Cyclotomics.Cyclotomic
 
 @testset "Cyclotomics" begin
 
@@ -58,24 +57,30 @@ import Cyclotomics.Cyclotomic
     end
 
     @testset "io strings" begin
-        @test string(E(5)) == " +1*E(5)^1"
-        @test string(-E(5)) == " -1*E(5)^1"
+        @test sprint(print, E(5)) == " 1*E(5)^1"
+        @test sprint(show, 2E(5)) == " 2*ζ₅"
+        @test sprint(print, -E(5)) == "-1*E(5)^1"
+        @test sprint(show, -E(5)) == "-ζ₅"
 
         using Base.Meta
         x = E(5) + 2E(5)^2
-        @test string(x) == " +1*E(5)^1 +2*E(5)^2"
-        @test eval(Base.Meta.parse(string(x))) == x
+        @test sprint(print, x) == " 1*E(5)^1 +2*E(5)^2"
+        @test sprint(show, x) == " ζ₅ +2*ζ₅²"
+        @test eval(Base.Meta.parse(sprint(print, x))) == x
 
         x = E(5) - 2E(5)^2
-        @test string(x) == " +1*E(5)^1 -2*E(5)^2"
-        @test eval(Base.Meta.parse(string(x))) == x
+        @test sprint(print, x) == " 1*E(5)^1 -2*E(5)^2"
+        @test sprint(show, x) == " ζ₅ -2*ζ₅²"
+        @test eval(Base.Meta.parse(sprint(print, x))) == x
 
-        x = -E(5) + 2E(5)^2
-        @test string(x) == " -1*E(5)^1 +2*E(5)^2"
-        @test eval(Base.Meta.parse(string(x))) == x
+        x = -2E(5) + 2E(5)^2
+        @test sprint(print, x) == "-2*E(5)^1 +2*E(5)^2"
+        @test sprint(show, x) == "-2*ζ₅ +2*ζ₅²"
+        @test eval(Base.Meta.parse(sprint(print, x))) == x
+
     end
 
-    @testset "indexing" begin
+    @testset "indexing and iteration" begin
         x = E(5)
         @test x[0] == 0
         @test x[1] == 1
@@ -91,6 +96,9 @@ import Cyclotomics.Cyclotomic
         @test x[2] == 3
         @test x[-3] == 3
         @test x[7] == 3
+
+        @test collect(E(6)) == [(1,1)]
+        @test collect(Cyclotomics.normalform!(E(6))) == [(4,-1)]
     end
 
     @testset "aritmetic: +, -, module: *, //" begin
@@ -99,6 +107,7 @@ import Cyclotomics.Cyclotomic
 
         @test 2x isa Cyclotomic{Int}
         @test 2.0x isa Cyclotomic{Float64}
+        @test x*2.0 isa Cyclotomic{Float64}
         @test div(x, 2) isa Cyclotomic{Int}
         @test x//2 isa Cyclotomic{Rational{Int}}
         @test x/2.0 isa Cyclotomic{Float64}
@@ -121,6 +130,7 @@ import Cyclotomics.Cyclotomic
         @test (1+x)[0] == 1
         @test x + 1 isa Cyclotomic{Int}
         @test 2.0 + x isa Cyclotomic{Float64}
+        @test 2.0 - x isa Cyclotomic{Float64}
         @test x + 2.0 isa Cyclotomic{Float64}
         @test (x+2.0)[0] == 2.0
 
@@ -183,11 +193,28 @@ import Cyclotomics.Cyclotomic
 
         @test iszero(1 + x - x - 1)
 
-        @test isreal(1+x-x)
         @test isone(sum(-E(5)^i for i in 1:4))
         @test isone(E(5)^5)
         x = E(5)^5
         @test x == sum(-E(5)^i for i in 1:4)
+    end
+
+    @testset "predicates" begin
+
+        @test isreal(1+E(5)-E(5))
+        @test isreal(E(5,1) + E(5,4))
+        @test isreal(E(5,2) + E(5,3))
+        @test !isreal(E(5,1) + E(5,2))
+        @test !isreal(E(5,1) + E(5,3))
+
+        @test isreal(abs2(E(5,1) + E(5,2)))
+
+        @test 1 == E(5)^5
+        @test E(5)^2+E(5)^3 ≈ (-1-sqrt(5))/2
+        @test E(5)^2+E(5)^3 != (-1-sqrt(5))/2
+        @test float(E(5)^2+E(5)^3) == (-1-sqrt(5))/2
+        @test 2.0(E(5)^2+E(5)^3) ≈ (-1-sqrt(5))
+        @test 2.0(E(5)^2+E(5)^3) != (-1-sqrt(5))
     end
 
     @testset "embedding" begin
@@ -223,7 +250,7 @@ import Cyclotomics.Cyclotomic
 
     @testset "conjugation and inverse" begin
 
-        function rand1(α::Cyclotomics.Cyclotomic, u::AbstractRange, k=5)
+        function rand1(α::Cyclotomic, u::AbstractRange, k=5)
             x = zero(eltype(u))*α
             for (idx, c) in zip(rand(0:conductor(α), k), rand(u, k))
                 x[idx] = c
@@ -239,6 +266,9 @@ import Cyclotomics.Cyclotomic
             E(45)^2+E(45)^3-E(45)^6-E(45)^8+E(45)^11-E(45)^12-2*E(45)^16+
             E(45)^17+E(45)^19+E(45)^21-2*E(45)^24-E(45)^26-E(45)^28+
             2*E(45)^29-E(45)^34+E(45)^37-2*E(45)^42-E(45)^43+E(45)^44
+
+            @test Cyclotomics.galois_conj(x, 1) == x
+            @test_throws AssertionError Cyclotomics.galois_conj(x, 5)
         end
 
         for x = [E(45)^5 + E(45)^10,
@@ -260,6 +290,26 @@ import Cyclotomics.Cyclotomic
             @test inv(y) == -E(9)^2+E(9)^3-E(9)^4 == inv(x)
             @test inv(y)*x == inv(x)*x == one(x)
         end
+    end
+
+    @testset "Conversions" begin
+
+        Cyc = typeof(E(3))
+
+        @test iszero(Cyc(0))
+        @test isone(Cyc(1))
+        @test isone(Cyc(1.0))
+        @test valtype(Cyc(1.0)) == Int
+        @test zeros(typeof(E(3)), 2, 2) isa Matrix{<:Cyclotomic}
+
+        v = [E(3)^i for i in 1:3]
+
+        @test (v[1] = 1.0*E(5)) isa Cyclotomic{Float64}
+        @test eltype(v) <: Cyclotomic{Int}
+        @test v[1] isa Cyclotomic{Int}
+        @test (v[1] = 2.0*E(5)) isa Cyclotomic{Float64}
+        @test v[1] == 2E(5)
+        @test_throws InexactError v[1] = 2.5*E(5)
     end
 
     @testset "Conversions to julia types" begin
@@ -288,9 +338,9 @@ import Cyclotomics.Cyclotomic
 
     @testset "dense/sparse" begin
         x = E(3)
-        @test Cyclotomics.dense(x) isa Cyclotomics.Cyclotomic{Int, <:DenseVector}
+        @test Cyclotomics.dense(x) isa Cyclotomic{Int, <:DenseVector}
         y = Cyclotomics.dense(x)
-        @test Cyclotomics.sparse(y) isa Cyclotomics.Cyclotomic{Int, <:Cyclotomics.SparseVector}
+        @test Cyclotomics.sparse(y) isa Cyclotomic{Int, <:Cyclotomics.SparseVector}
 
         @test coeffs(x) isa Cyclotomics.SparseVector
         @test coeffs(Cyclotomics.sparse(y)) isa Cyclotomics.SparseVector
@@ -299,6 +349,5 @@ import Cyclotomics.Cyclotomic
         @test coeffs(Cyclotomics.dense(x)) isa Vector
 
         @test x == y
-
     end
 end

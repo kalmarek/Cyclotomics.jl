@@ -1,6 +1,12 @@
+"""
+    hash(α::Cyclotomic[, h::UInt])
+
+A basic hashing function for cyclotomic elements; Note that unlike the `Base` types hashing of `Cyclotomic`s is expensive as it necessitates reducing to minimal embeding.
+This is to keep `hash`ing consistent and reliable with respect to `==`, i.e. that the equality of elements implies the equality of `hash`es.
+"""
 function Base.hash(α::Cyclotomic, h::UInt)
-    normalform!(α)
-    return hash(coeffs(α), hash(conductor(α), hash(Cyclotomic, h)))
+    β = reduced_embedding(α)
+    return hash(coeffs(β), hash(conductor(β), hash(Cyclotomic, h)))
 end
 
 function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
@@ -16,21 +22,32 @@ function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
     end
 end
 
-Base.:(==)(α::Cyclotomic, x::T) where {T<:Number} = T(α) == x
+Base.:(==)(α::Cyclotomic{T}, x::R) where {T,R<:Real} = α == Cyclotomic(1, [x])
+Base.:(==)(x::Real, α::Cyclotomic) = α == x
 
 function Base.isapprox(
     α::Cyclotomic{T},
     x::S;
     atol::Real = 0,
-    rtol::Real = atol > 0 ? 0 : sqrt(max(eps(x), sum(eps, coeffs(α)))),
-) where {T,S<:Real}
+    rtol::Real = atol > 0 ? 0 : sqrt(max(eps(x), maximum(eps, coeffs(α)))),
+) where {T<:AbstractFloat,S<:AbstractFloat}
+    return isapprox(S(α), x; atol = atol, rtol = rtol)
+end
+
+function Base.isapprox(
+    α::Cyclotomic{T},
+    x::S;
+    atol::Real = 0,
+    rtol::Real = atol > 0 ? 0 : eps(x),
+) where {T,S<:AbstractFloat}
     return isapprox(S(α), x; atol = atol, rtol = rtol)
 end
 
 Base.iszero(α::Cyclotomic) =
     all(iszero, values(α)) || (normalform!(α); all(iszero, values(α)))
 
-Base.isreal(α::Cyclotomic) = conductor(reduced_embedding(α)) == 1
+Base.isreal(α::Cyclotomic) =
+    α == conj(α) || conductor(reduced_embedding(α)) == 1
 
 function Base.isone(α::Cyclotomic)
     β = reduced_embedding(α)

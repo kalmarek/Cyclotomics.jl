@@ -3,7 +3,7 @@ module Cyclotomics
 using Primes
 using SparseArrays
 
-export coeffs, conductor, exponents, E
+export coeffs, conductor, E, Cyclotomic
 
 include("zumbroich.jl")
 include("cycl.jl")

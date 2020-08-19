@@ -17,10 +17,6 @@ To access the internals of a cyclotomic use API functions:
 
 Iteration over non-zero coefficients in `Cyclotomic` is provided by `iterate`
 which produces pairs `(exp, coeff)` of exponent and corresponding coefficient.
-
-!!! warning "Beware!"
-
-    `hash` function will not reduce a cyclotomic to its minimal embedding field, as this may be a very expensive operation, and will compute the `hash` of a cyclotomic _at current embeding_. Therefore _equal cyclotomics_ in different embeddings may have _different hashes_! To avoid this pitfall use `normalform!(α, minimalfield(α))`.
 """
 struct Cyclotomic{T,A<:AbstractVector{T}} <: Number
     n::Int
@@ -30,7 +26,11 @@ end
 Cyclotomic(v::V) where {V<:AbstractVector} =
     Cyclotomic{eltype(v),V}(length(v), v)
 Cyclotomic{T}(α::Cyclotomic) where {T} =
-    Cyclotomic(conductor(α), convert.(T, α.coeffs))
+    Cyclotomic(conductor(α), convert.(T, coeffs(α)))
+Cyclotomic{T,V}(α::Cyclotomic) where {T,V} =
+    Cyclotomic{T,V}(conductor(α), convert.(T, coeffs(α)))
+
+Cyclotomic{T,V}(a::R) where {T,V,R<:Real} = Cyclotomic{T,V}(1, T[a])
 
 """
     E(n[, i=1])
@@ -133,19 +133,20 @@ Return a copy of `α` with coefficients stored in `SparseVector`.
 """
 SparseArrays.sparse(α::Cyclotomic) = Cyclotomic(sparse(coeffs(α)))
 
-
-function Base.float(α::Cyclotomic)
+function Base.float(::Type{T}, α::Cyclotomic) where {T}
     β = reduced_embedding(α)
-    isreal(β) && return float(β[0])
+    isreal(β) && return real(Complex{T}(β))
     throw(InexactError(:float, AbstractFloat, α))
 end
+
+Base.float(α::Cyclotomic) = float(Float64, α)
 
 for f in (:Int, :Float64)
     q = QuoteNode(f)
     @eval begin
         function Base.$f(α::Cyclotomic)
             β = reduced_embedding(α)
-            isreal(β) && return $f(β[0])
+            isreal(β) && return $f(real(ComplexF64(β)))
             throw(InexactError($q, $f, α))
         end
     end
@@ -161,3 +162,5 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     end
     return z
 end
+
+Base.abs2(α::Cyclotomic) = α * conj(α)
