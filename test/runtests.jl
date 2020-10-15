@@ -62,6 +62,9 @@ using Cyclotomics
         @test sprint(print, -E(5)) == "-1*E(5)^1"
         @test sprint(show, -E(5)) == "-ζ₅"
 
+        @test sprint(show, 0.0*E(4)) == "0.0"
+        @test sprint(print, 0.0*E(4)) == "0.0"
+
         using Base.Meta
         x = E(5) + 2E(5)^2
         @test sprint(print, x) == " 1*E(5)^1 +2*E(5)^2"

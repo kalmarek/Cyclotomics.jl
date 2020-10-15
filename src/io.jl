@@ -55,15 +55,19 @@ function Base.show(io::IO, α::Cyclotomic{T}) where {T}
 end
 
 function Base.print(io::IO, α::Cyclotomic)
-    E_str = "E($(conductor(α)))"
-    for (i, exp) in enumerate(exponents(α))
-        coeff = α[exp]
-        if coeff > zero(coeff)
-            sign_str = i == 1 ? " " : " +"
-        else
-            sign_str = i == 1 ? "" : " "
-        end
+    if iszero(α)
+        print(io, zero(valtype(α)))
+    else
+        E_str = "E($(conductor(α)))"
+        for (i, exp) in enumerate(exponents(α))
+            coeff = α[exp]
+            if coeff > zero(coeff)
+                sign_str = i == 1 ? " " : " +"
+            else
+                sign_str = i == 1 ? "" : " "
+            end
 
-        print(io, sign_str, coeff, "*", E_str, "^", exp)
+            print(io, sign_str, coeff, "*", E_str, "^", exp)
+        end
     end
 end
