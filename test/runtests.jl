@@ -14,19 +14,19 @@ using Cyclotomics
         @test 1 in fb
         @test !(2 in fb)
 
-        @test Cyclotomics.zumbroich(9) == [ 2, 3, 4, 5, 6, 7 ]
+        @test Cyclotomics.zumbroich_basis(9) == [ 2, 3, 4, 5, 6, 7 ]
 
-        @test !any(in(fb), Cyclotomics.zumbroich(9))
+        @test !any(in(fb), Cyclotomics.zumbroich_basis(9))
 
         @test Cyclotomics.zumbroich_plain(8) ==
-            Cyclotomics.zumbroich(8) == [ 0, 1, 2, 3 ]
+            Cyclotomics.zumbroich_basis(8) == [ 0, 1, 2, 3 ]
         @test Cyclotomics.zumbroich_plain(9) ==
-            Cyclotomics.zumbroich(9) == [ 2, 3, 4, 5, 6, 7 ]
+            Cyclotomics.zumbroich_basis(9) == [ 2, 3, 4, 5, 6, 7 ]
 
-        @test Cyclotomics.zumbroich(45) == [ 1, 2, 3, 6, 7, 8, 11, 12, 16, 17, 19, 21, 24, 26, 28, 29, 33, 34, 37, 38, 39, 42, 43, 44 ]
+        @test Cyclotomics.zumbroich_basis(45) == [ 1, 2, 3, 6, 7, 8, 11, 12, 16, 17, 19, 21, 24, 26, 28, 29, 33, 34, 37, 38, 39, 42, 43, 44 ]
 
         @test all(Cyclotomics.zumbroich_plain(i) ==
-            Cyclotomics.zumbroich(i) ==
+            Cyclotomics.zumbroich_basis(i) ==
             Cyclotomics.zumbroich_direct(i) for i in 1:5000)
     end
 
@@ -62,13 +62,15 @@ using Cyclotomics
         @test sprint(print, -E(5)) == "-1*E(5)^1"
         @test sprint(show, -E(5)) == "-ζ₅"
 
+        @test sprint(show, -1.0*E(5)) == "-1.0*ζ₅"
+
         @test sprint(show, 0.0*E(4)) == "0.0"
         @test sprint(print, 0.0*E(4)) == "0.0"
 
         using Base.Meta
         x = E(5) + 2E(5)^2
-        @test sprint(print, x) == " 1*E(5)^1 +2*E(5)^2"
-        @test sprint(show, x) == " ζ₅ +2*ζ₅²"
+        @test sprint(print, x) == " 1*E(5)^1 + 2*E(5)^2"
+        @test sprint(show, x) == " ζ₅ + 2*ζ₅²"
         @test eval(Base.Meta.parse(sprint(print, x))) == x
 
         x = E(5) - 2E(5)^2
@@ -77,8 +79,8 @@ using Cyclotomics
         @test eval(Base.Meta.parse(sprint(print, x))) == x
 
         x = -2E(5) + 2E(5)^2
-        @test sprint(print, x) == "-2*E(5)^1 +2*E(5)^2"
-        @test sprint(show, x) == "-2*ζ₅ +2*ζ₅²"
+        @test sprint(print, x) == "-2*E(5)^1 + 2*E(5)^2"
+        @test sprint(show, x) == "-2*ζ₅ + 2*ζ₅²"
         @test eval(Base.Meta.parse(sprint(print, x))) == x
 
     end
@@ -337,6 +339,17 @@ using Cyclotomics
         @test Complex{BigFloat}(x) ≈ cos(γ) + im*sin(γ)
 
         @test ComplexF64(x)^2 ≈ ComplexF64(x^2)
+    end
+
+    @testset "Complex arithmetic" begin
+        @test real(E(4)) == 0
+        @test imag(-E(4)) == -1
+        @test Cyclotomic(1+2im) isa Cyclotomic
+        @test Cyclotomic(1.0-2.0im) isa Cyclotomic
+        @test reim(Cyclotomic(2-3im)) == (2,-3)
+
+        @test E(4)*im == -1
+        @test E(4)-im == 0
     end
 
     @testset "dense/sparse" begin

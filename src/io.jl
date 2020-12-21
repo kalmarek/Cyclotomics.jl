@@ -62,7 +62,7 @@ function Base.print(io::IO, α::Cyclotomic)
         for (i, exp) in enumerate(exponents(α))
             coeff = α[exp]
             if coeff > zero(coeff)
-                sign_str = i == 1 ? " " : " +"
+                sign_str = i == 1 ? " " : " + "
             else
                 sign_str = i == 1 ? "" : " "
             end
