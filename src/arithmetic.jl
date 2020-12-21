@@ -46,6 +46,12 @@ Base.div(α::Cyclotomic, c::Number) =
     (T = typeof(div(α[0], c)); div!(similar(α, T), normalform!(α), c))
 
 ###########################
+# Complex arithmetic
+
+Base.promote_rule(::Type{<:Cyclotomic{T}}, ::Type{<:Complex{S}}) where {T,S} =
+    (TT = promote_type(T,S); Cyclotomic{TT, SparseVector{TT, Int}})
+
+###########################
 # Ring structure:
 
 add!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
