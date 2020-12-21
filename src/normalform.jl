@@ -18,7 +18,7 @@ function normalform!(
     basis_forbidden = zumbroich_viacomplement(conductor(α)),
 ) where {T}
     # @debug "normalizing:" conductor(α) coeffs(α)
-    isnormalized(α, BitSet(first(basis_forbidden))) && return α
+    isnormalized(α, first(basis_forbidden)) && return α
 
     copyto!(coeffs(tmp), coeffs(α))
     normalform!(tmp, basis_forbidden = basis_forbidden)
@@ -33,7 +33,7 @@ function normalform!(
 ) where {T}
 
     basis, forbidden = basis_forbidden
-    isnormalized(α, BitSet(basis)) && return α
+    isnormalized(α, basis) && return α
     for fb in forbidden
         for exp in exponents(α)
             exp in basis && continue

@@ -8,7 +8,7 @@ function zumbroich_perf(ran)
     @testset "zumbroich perf" begin
         @test all(
             Cyclotomics.zumbroich_plain.(ran) .==
-            Cyclotomics.zumbroich_basis.(ran) .==
+            sort!.(collect.(Cyclotomics.zumbroich_basis.(ran))) .==
             Cyclotomics.zumbroich_direct.(ran),
         )
 

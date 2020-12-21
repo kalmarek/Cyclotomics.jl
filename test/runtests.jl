@@ -14,19 +14,21 @@ using Cyclotomics
         @test 1 in fb
         @test !(2 in fb)
 
-        @test Cyclotomics.zumbroich_basis(9) == [ 2, 3, 4, 5, 6, 7 ]
+        cs(x) = sort!(collect(x))
+
+        @test cs(Cyclotomics.zumbroich_basis(9)) == [ 2, 3, 4, 5, 6, 7 ]
 
         @test !any(in(fb), Cyclotomics.zumbroich_basis(9))
 
         @test Cyclotomics.zumbroich_plain(8) ==
-            Cyclotomics.zumbroich_basis(8) == [ 0, 1, 2, 3 ]
+            cs(Cyclotomics.zumbroich_basis(8)) == [ 0, 1, 2, 3 ]
         @test Cyclotomics.zumbroich_plain(9) ==
-            Cyclotomics.zumbroich_basis(9) == [ 2, 3, 4, 5, 6, 7 ]
+            cs(Cyclotomics.zumbroich_basis(9)) == [ 2, 3, 4, 5, 6, 7 ]
 
-        @test Cyclotomics.zumbroich_basis(45) == [ 1, 2, 3, 6, 7, 8, 11, 12, 16, 17, 19, 21, 24, 26, 28, 29, 33, 34, 37, 38, 39, 42, 43, 44 ]
+        @test cs(Cyclotomics.zumbroich_basis(45)) == [ 1, 2, 3, 6, 7, 8, 11, 12, 16, 17, 19, 21, 24, 26, 28, 29, 33, 34, 37, 38, 39, 42, 43, 44 ]
 
         @test all(Cyclotomics.zumbroich_plain(i) ==
-            Cyclotomics.zumbroich_basis(i) ==
+            cs(Cyclotomics.zumbroich_basis(i)) ==
             Cyclotomics.zumbroich_direct(i) for i in 1:5000)
     end
 

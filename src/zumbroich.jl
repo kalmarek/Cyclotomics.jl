@@ -114,20 +114,25 @@ end
 
 function zumbroich_viacomplement(n::Integer, factor_n = factor(n))
 
+    @debug "memoizing Zumbroich basis for ℚ(ζ_$n)"
+
     # following the wonderful documenting comments at the top of
     # https://github.com/gap-system/gap/blob/master/src/cyclotom.c
 
     forbidden = ForbiddenResidues(n, factor_n)
 
-    isone(n) && return [0], forbidden
+    isone(n) && return BitSet([0]), forbidden
 
-    exps = Vector{typeof(n)}(undef, totient(factor_n))
+    # exps = Vector{typeof(n)}(undef, totient(factor_n))
+    # exps = BitSet(i for i in 1:n if !(i ∈ forbidden))
+
+    exps = BitSet(); sizehint!(exps, totient(factor_n))
     count = 0
     for i = 0:n-1
         i ∈ forbidden && continue
         count += 1
-        exps[count] = i
-        # count == length(exps) && break
+        # exps[count] = i
+        push!(exps, i)
     end
     @assert count == length(exps)
     return exps, forbidden
