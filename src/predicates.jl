@@ -59,7 +59,7 @@ end
     isnormalized(α::Cyclotomic, basis)
 Check if `α` is already in normal form with respect to the given basis.
 """
-function isnormalized(α::Cyclotomic, basis = zumbroich(conductor(α)))
+function isnormalized(α::Cyclotomic, basis = zumbroich_basis(conductor(α)))
     # return all(in(basis), exponents(α))
     for e in exponents(α)
         e in basis || return false

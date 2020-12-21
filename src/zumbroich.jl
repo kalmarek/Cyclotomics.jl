@@ -19,8 +19,8 @@ function zumbroich_plain(n::Integer, m::Integer = 1)
     @assert iszero(last(divrem(n, m)))
     isone(n) && return [0]
 
-    factors_n = factor(n)
-    factors_m = factor(m)
+    factors_n = Primes.factor(n)
+    factors_m = Primes.factor(m)
 
     exps = Vector{Int}[]
     sizehint!(exps, 2 * length(factors_n))
@@ -39,7 +39,7 @@ function zumbroich_direct(n::Integer)
     isone(n) && return [0]
     basis = [0]
 
-    factor_n = factor(n)
+    factor_n = Primes.factor(n)
 
     if iseven(n)
         for k = 1:factor_n[2]-1
@@ -88,7 +88,7 @@ end
 
 function ForbiddenResidues(
     n::Integer,
-    pf::Primes.Factorization{I} = factor(n),
+    pf::Primes.Factorization{I} = Primes.factor(n),
 ) where {I}
     l = length(pf)
     primes_powers = Vector{Tuple{I,I,BitSet}}(undef, l)
@@ -112,25 +112,31 @@ Base.iterate(fr::ForbiddenResidues, s = 1) =
     return false
 end
 
-function zumbroich_viacomplement(n::Integer, factor_n = factor(n))
+function zumbroich_viacomplement(n::Integer, factor_n = Primes.factor(n))
+
+    @debug "memoizing Zumbroich basis for ℚ(ζ_$n)"
 
     # following the wonderful documenting comments at the top of
     # https://github.com/gap-system/gap/blob/master/src/cyclotom.c
 
     forbidden = ForbiddenResidues(n, factor_n)
 
-    isone(n) && return [0], forbidden
+    isone(n) && return BitSet([0]), forbidden
 
-    exps = Vector{typeof(n)}(undef, totient(factor_n))
+    # exps = Vector{typeof(n)}(undef, Primes.totient(factor_n))
+    # exps = BitSet(i for i in 1:n if !(i ∈ forbidden))
+
+    exps = BitSet()
+    sizehint!(exps, Primes.totient(factor_n))
     count = 0
     for i = 0:n-1
         i ∈ forbidden && continue
         count += 1
-        exps[count] = i
-        # count == length(exps) && break
+        # exps[count] = i
+        push!(exps, i)
     end
     @assert count == length(exps)
     return exps, forbidden
 end
 
-zumbroich(n::Integer) = first(zumbroich_viacomplement(n))
+zumbroich_basis(n::Integer) = first(zumbroich_viacomplement(n))

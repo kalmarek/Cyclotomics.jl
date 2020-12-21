@@ -23,21 +23,23 @@ struct Cyclotomic{T,A<:AbstractVector{T}} <: Number
     coeffs::A
 end
 
-Cyclotomic(v::V) where {V<:AbstractVector} =
-    Cyclotomic{eltype(v),V}(length(v), v)
-Cyclotomic{T}(α::Cyclotomic) where {T} =
-    Cyclotomic(conductor(α), convert.(T, coeffs(α)))
+Cyclotomic(v::V) where {V<:AbstractVector} = Cyclotomic{eltype(v),V}(length(v), v)
+Cyclotomic{T}(α::Cyclotomic) where {T} = Cyclotomic(conductor(α), convert.(T, coeffs(α)))
 Cyclotomic{T,V}(α::Cyclotomic) where {T,V} =
     Cyclotomic{T,V}(conductor(α), convert.(T, coeffs(α)))
 
 Cyclotomic{T,V}(a::R) where {T,V,R<:Real} = Cyclotomic{T,V}(1, T[a])
+
+Cyclotomic(c::Complex{T}) where T = Cyclotomic{T, SparseVector{T, Int}}(c)
+Cyclotomic{T,V}(c::C) where {T,V,C<:Complex} =
+    Cyclotomic{T,V}(real(c)) + E(4) * Cyclotomic{T,V}(imag(c))
 
 """
     E(n[, i=1])
 Return the `i`-th power of `n`-th root of unity with sparse vector as storage.
 """
 function E(n, i = 1)
-    k = totient(n)
+    k = Primes.totient(n)
     i = (0 <= i < n ? i : mod(i, n))
     coeffs = sparsevec([i + 1], [1], n)
     sizehint!(coeffs.nzind, k)
@@ -73,11 +75,7 @@ end
 
 Base.getindex(α::Cyclotomic, itr) = [α[i] for i in itr]
 
-Base.@propagate_inbounds function Base.setindex!(
-    α::Cyclotomic,
-    val,
-    exp::Integer,
-)
+Base.@propagate_inbounds function Base.setindex!(α::Cyclotomic, val, exp::Integer)
     α.coeffs[_to_index(α, exp)] = val
     return val
 end
@@ -117,15 +115,13 @@ Base.valtype(::Cyclotomic{T}) where {T} = T
 
 Base.similar(α::Cyclotomic, T::Type = valtype(α)) = similar(α, T, conductor(α))
 Base.similar(α::Cyclotomic, m::Integer) = similar(α, valtype(α), m)
-Base.similar(α::Cyclotomic, T::Type, n::Integer) =
-    Cyclotomic(similar(coeffs(α), T, n))
+Base.similar(α::Cyclotomic, T::Type, n::Integer) = Cyclotomic(similar(coeffs(α), T, n))
 
 """
     dense(α::Cyclotomic)
 Return a copy of `α` with coefficients stored in dense `Vector`.
 """
-dense(α::Cyclotomic{T}) where {T} =
-    Cyclotomic{T,Vector{T}}(conductor(α), coeffs(α))
+dense(α::Cyclotomic{T}) where {T} = Cyclotomic{T,Vector{T}}(conductor(α), coeffs(α))
 
 """
     sparse(α::Cyclotomic)
@@ -164,3 +160,6 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
 end
 
 Base.abs2(α::Cyclotomic) = α * conj(α)
+
+Base.real(α::Cyclotomic) = div(α + conj(α), 2)
+Base.imag(α::Cyclotomic) = (out = α - conj(α); z = div(out, 2); mul!(out, z, -E(4)); out)

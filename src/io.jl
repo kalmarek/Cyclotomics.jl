@@ -34,14 +34,14 @@ function Base.show(io::IO, α::Cyclotomic{T}) where {T}
                 print(io, coeff)
                 continue
             end
-            if isone(coeff)
-                sign_str = i == 1 ? " " : " +"
+            if isone(coeff) && T<:Integer
+                sign_str = i == 1 ? " " : " + "
                 coeff_str = ""
-            elseif isone(-coeff)
+            elseif isone(-coeff) && T<:Integer
                 sign_str = "-"
                 coeff_str = ""
             elseif coeff > zero(coeff)
-                sign_str = i == 1 ? " " : " +"
+                sign_str = i == 1 ? " " : " + "
                 coeff_str = "$coeff*"
             else
                 sign_str = i == 1 ? "" : " "
@@ -62,7 +62,7 @@ function Base.print(io::IO, α::Cyclotomic)
         for (i, exp) in enumerate(exponents(α))
             coeff = α[exp]
             if coeff > zero(coeff)
-                sign_str = i == 1 ? " " : " +"
+                sign_str = i == 1 ? " " : " + "
             else
                 sign_str = i == 1 ? "" : " "
             end
