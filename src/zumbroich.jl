@@ -133,4 +133,4 @@ function zumbroich_viacomplement(n::Integer, factor_n = factor(n))
     return exps, forbidden
 end
 
-zumbroich(n::Integer) = first(zumbroich_viacomplement(n))
+zumbroich_basis(n::Integer) = first(zumbroich_viacomplement(n))
