@@ -1,6 +1,6 @@
 module Cyclotomics
 
-using Primes
+import Primes
 using SparseArrays
 
 export coeffs, conductor, E, Cyclotomic

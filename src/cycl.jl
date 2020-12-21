@@ -39,7 +39,7 @@ Cyclotomic{T,V}(c::C) where {T,V,C<:Complex} =
 Return the `i`-th power of `n`-th root of unity with sparse vector as storage.
 """
 function E(n, i = 1)
-    k = totient(n)
+    k = Primes.totient(n)
     i = (0 <= i < n ? i : mod(i, n))
     coeffs = sparsevec([i + 1], [1], n)
     sizehint!(coeffs.nzind, k)
