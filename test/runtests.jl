@@ -286,12 +286,11 @@ using Cyclotomics
             @test_throws AssertionError Cyclotomics.galois_conj(x, 5)
         end
 
-        for x = [E(45)^5 + E(45)^10,
+        for x in [E(45)^5 + E(45)^10,
                 E(45) - E(45)^5,
                 rand1(E(45), -5:5, 3),
                 rand1(E(45), -1:1, 5)]
-
-            @test isone(x*inv(x//big(1)))
+            iszero(x) || @test isone(x*inv(x//big(1)))
         end
 
         for x in [E(45)^5 + big(1)*E(45)^10, (E(45)^5)//1 + big(1)*E(45)^10]
