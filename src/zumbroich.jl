@@ -112,7 +112,7 @@ Base.iterate(fr::ForbiddenResidues, s = 1) =
     return false
 end
 
-function zumbroich_viacomplement(n::Integer, factor_n = Primes.factor(n))
+function zumbroich_viacomplement(n::Integer, factor_n::Primes.Factorization)
 
     @debug "memoizing Zumbroich basis for ℚ(ζ_$n)"
 
@@ -138,5 +138,15 @@ function zumbroich_viacomplement(n::Integer, factor_n = Primes.factor(n))
     @assert count == length(exps)
     return exps, forbidden
 end
+
+import Memoize
+import LRUCache
+
+@static if VERSION >= v"1.2.0"
+Memoize.@memoize LRUCache.LRU{Tuple{Int}, Tuple{BitSet, ForbiddenResidues{Int}}}(maxsize=1000) zumbroich_viacomplement(n::Int) =
+    zumbroich_viacomplement(n, Primes.factor(n))
+end
+
+zumbroich_viacomplement(n::Integer) = zumbroich_viacomplement(n, Primes.factor(n))
 
 zumbroich_basis(n::Integer) = first(zumbroich_viacomplement(n))
