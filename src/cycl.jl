@@ -129,25 +129,6 @@ Return a copy of `α` with coefficients stored in `SparseVector`.
 """
 SparseArrays.sparse(α::Cyclotomic) = Cyclotomic(sparse(coeffs(α)))
 
-function Base.float(::Type{T}, α::Cyclotomic) where {T}
-    β = reduced_embedding(α)
-    isreal(β) && return real(Complex{T}(β))
-    throw(InexactError(:float, AbstractFloat, α))
-end
-
-Base.float(α::Cyclotomic) = float(Float64, α)
-
-for f in (:Int, :Float64)
-    q = QuoteNode(f)
-    @eval begin
-        function Base.$f(α::Cyclotomic)
-            β = reduced_embedding(α)
-            isreal(β) && return $f(real(ComplexF64(β)))
-            throw(InexactError($q, $f, α))
-        end
-    end
-end
-
 function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     z = zero(Complex{T})
     rα = reduced_embedding(α)
@@ -159,7 +140,42 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     return z
 end
 
+function Base.float(::Type{T}, α::Cyclotomic) where {T<:AbstractFloat}
+    isreal(α) && return real(Complex{T}(α))
+    throw(InexactError(:float, T, α))
+end
+
+Base.float(α::Cyclotomic) = float(Float64, α)
+Base.Float64(α::Cyclotomic) = float(Float64, α)
+
+function _isreal(α::Cyclotomic)
+    rα = reduced_embedding(α)
+    if !isreal(rα) || any(!iszero, (rα[i] for i in 1:conductor(rα)-1))
+        return (false, rα)
+    else
+        return (true, rα)
+    end
+end
+
+function Base.Int(α::Cyclotomic)
+    flag, rα = _isreal(α)
+    flag && return Int(rα[0])
+    throw(InexactError(:Int, Int, α))
+end
+
+function Base.Rational{T}(α::Cyclotomic) where {T}
+    flag, rα = _isreal(α)
+    flag && return Rational{T}(rα[0])
+    throw(InexactError(:Rational, Rational{T}, α))
+end
+
+Base.Rational(α::Cyclotomic{T}) where T<:Integer = Rational{T}(α)
+Base.Rational(α::Cyclotomic{Rational{T}}) where T = Rational{T}(α)
+
 Base.abs2(α::Cyclotomic) = α * conj(α)
 
-Base.real(α::Cyclotomic) = div(α + conj(α), 2)
-Base.imag(α::Cyclotomic) = (out = α - conj(α); z = div(out, 2); mul!(out, z, -E(4)); out)
+Base.real(α::Cyclotomic) = (α + conj(α))/2
+Base.real(α::Cyclotomic{T}) where T<:Integer = div(α + conj(α), 2)
+
+Base.imag(α::Cyclotomic) = -im*(α - conj(α))/2
+Base.imag(α::Cyclotomic{T}) where T<:Integer = -im*div(α - conj(α), 2)

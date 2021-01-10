@@ -68,6 +68,8 @@ using Cyclotomics
 
         @test sprint(show, 0.0*E(4)) == "0.0"
         @test sprint(print, 0.0*E(4)) == "0.0"
+        @test sprint(show, E(1)) == "1"
+        @test sprint(print, 1.0*E(1)) == " 1.0*E(1)^0"
 
         using Base.Meta
         x = E(5) + 2E(5)^2
@@ -147,6 +149,7 @@ using Cyclotomics
         x = Cyclotomics.embed(5*E(4,0), 60);
         Cyclotomics.normalform!(x)
         @test isone(div(x-2, 3))
+
     end
 
     @testset "*, powering" begin
@@ -265,7 +268,7 @@ using Cyclotomics
             return x
         end
 
-        let x = E(45) + E(45)^2
+        for x in [E(45) + E(45)^2, E(45)+ E(45)^2//1]
             @test conj(x,1) == x
             y = prod(conj(x,i) for i in 2:conductor(x) if gcd(conductor(x), i)==1)
             @test isreal(x*y)
@@ -286,16 +289,42 @@ using Cyclotomics
             @test isone(x*inv(x//big(1)))
         end
 
-        let x = E(45)^5 + big(1)*E(45)^10;
+        for x in [E(45)^5 + big(1)*E(45)^10, (E(45)^5)//1 + big(1)*E(45)^10]
             y = Cyclotomics.normalform(x)
             @test inv(y) == -E(9)^2+E(9)^3-E(9)^4 == inv(x)
             @test inv(y)*x == inv(x)*x == one(x)
         end
 
-        let x = E(45)^5 + big(1)*E(45)^10;
+        for x in [E(45)^5 + big(1)*E(45)^10, (E(45)^5)//1 + big(1)*E(45)^10]
             y = Cyclotomics.reduced_embedding(x)
             @test inv(y) == -E(9)^2+E(9)^3-E(9)^4 == inv(x)
             @test inv(y)*x == inv(x)*x == one(x)
+        end
+
+        for x in [0.5 + 0.75*E(4), 1//2 + 3//4*E(4)]
+            @test real(x) == 0.5
+            @test imag(x) == 0.75
+            @test float(real(x)) isa Float64
+            @test float(imag(x)) isa Float64
+            @test x == real(x) + im*imag(x)
+            @test_throws InexactError float(x)
+            @test_throws InexactError Rational{Int}(x)
+            @test Rational{Int}(x + conj(x)) isa Rational{Int}
+            @test Rational{Int}(x + conj(x)) == x + conj(x)
+            if valtype(x) <: Rational
+                @test Rational(x+conj(x)) isa Rational{Int}
+                @test Rational(x+conj(x)) == 1//1
+            else
+                @test_throws MethodError Rational(x+conj(x))
+            end
+        end
+
+        let x = E(45)^5 + E(45)^10
+            @test isreal(x+conj(x))
+            @test float(x+conj(x)) isa Float64
+            @test !first(Cyclotomics._isreal(x))
+            @test_throws InexactError Float64(x)
+            @test_throws InexactError Rational(x)
         end
     end
 
