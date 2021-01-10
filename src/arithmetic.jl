@@ -74,8 +74,8 @@ function mul!(
     end
     zero!(out)
 
-    for (αe, αc) in α
-        for (βe, βc) in β
+    for (αe, αc) in exps_coeffs(α)
+        for (βe, βc) in exps_coeffs(β)
             out[αe+βe] += αc * βc
         end
     end
@@ -98,8 +98,8 @@ end
 
 function Base.conj!(out::Cyclotomic, α::Cyclotomic, n::Integer = -1)
     zero!(out)
-    for (exp, c) in α
-        out[n*exp] = c
+    for (e, c) in exps_coeffs(α)
+        out[n*e] = c
     end
     return out
 end
