@@ -80,37 +80,35 @@ Base.@propagate_inbounds function Base.setindex!(α::Cyclotomic, val, exp::Integ
     return val
 end
 
-# Base.@propagate_inbounds function Base.setindex!(α::Cyclotomic, val, itr)
-#     for exp in itr
-#         α[exp] = val
-#     end
-#     return itr
-# end
-
-# general definitions for iteration
-function Base.iterate(α::Cyclotomic, state = 0)
-    idx = findnext(!iszero, coeffs(α), state + 1)
-    idx === nothing && return nothing
-    return (idx - 1, coeffs(α)[idx]), idx
+struct ExpCoeffItr{C<:Cyclotomic}
+    α::C
 end
 
-Base.IteratorSize(::Type{<:Cyclotomic}) = Base.HasLength()
-Base.length(α::Cyclotomic) = count(!iszero, coeffs(α))
-Base.eltype(::Type{<:Cyclotomic{T}}) where {T} = Tuple{Int,T}
+# general definitions for iteration
+function Base.iterate(itr::ExpCoeffItr, state = 0)
+    idx = findnext(!iszero, coeffs(itr.α), state + 1)
+    idx === nothing && return nothing
+    return (idx - 1, coeffs(itr.α)[idx]), idx
+end
 
+Base.IteratorSize(::Type{<:ExpCoeffItr}) = Base.HasLength()
+Base.length(itr::ExpCoeffItr) = count(!iszero, coeffs(itr.α))
+Base.eltype(::Type{<:ExpCoeffItr{<:Cyclotomic{T}}}) where {T} = Tuple{Int,T}
+
+exps_coeffs(α::Cyclotomic) = ExpCoeffItr(α)
 """
     exponents(α::Cyclotomic)
 Return an iterator over non-zero exponents of `α`, beginning at `0`-th one.
 Matched iterator over coefficients is provided by @ref(values).
 """
-exponents(α::Cyclotomic) = (first(i) for i in α)
+exponents(α::Cyclotomic) = (e for (e, c) in exps_coeffs(α))
 
 """
     values(α::Cyclotomic)
 Return an iterator over non-zero coefficients of `α`, beginning at `0`-th one.
 Matched iterator over exponents is provided by @ref(exponents).
 """
-Base.values(α::Cyclotomic) = (last(i) for i in α)
+Base.values(α::Cyclotomic) = (c for (e, c) in exps_coeffs(α))
 Base.valtype(::Cyclotomic{T}) where {T} = T
 
 Base.similar(α::Cyclotomic, T::Type = valtype(α)) = similar(α, T, conductor(α))
@@ -133,7 +131,7 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     z = zero(Complex{T})
     rα = reduced_embedding(α)
     n = conductor(rα)
-    for (e, c) in rα
+    for (e, c) in exps_coeffs(rα)
         γ = 2 * T(π) * T(e) / n
         z += c * (cos(γ) + im * sin(γ))
     end

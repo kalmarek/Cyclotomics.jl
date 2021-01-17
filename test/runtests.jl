@@ -106,8 +106,8 @@ using Cyclotomics
         @test x[-3] == 3
         @test x[7] == 3
 
-        @test collect(E(6)) == [(1,1)]
-        @test collect(Cyclotomics.normalform!(E(6))) == [(4,-1)]
+        @test collect(Cyclotomics.exps_coeffs(E(6))) == [(1,1)]
+        @test collect(Cyclotomics.exps_coeffs(Cyclotomics.normalform!(E(6)))) == [(4,-1)]
     end
 
     @testset "aritmetic: +, -, module: *, //" begin
@@ -150,6 +150,11 @@ using Cyclotomics
         Cyclotomics.normalform!(x)
         @test isone(div(x-2, 3))
 
+        # broadcasting on 1.6 is broken
+
+        @test E(3) .* [1,2] == [E(3), 2E(3)]
+        @test eltype(E(3) .* [1.0,2.0]) <: Cyclotomic{Float64}
+        @test eltype(1//1*E(3) .* [1,2]) <: Cyclotomic{Rational{Int}}
     end
 
     @testset "*, powering" begin
@@ -281,12 +286,11 @@ using Cyclotomics
             @test_throws AssertionError Cyclotomics.galois_conj(x, 5)
         end
 
-        for x = [E(45)^5 + E(45)^10,
+        for x in [E(45)^5 + E(45)^10,
                 E(45) - E(45)^5,
                 rand1(E(45), -5:5, 3),
                 rand1(E(45), -1:1, 5)]
-
-            @test isone(x*inv(x//big(1)))
+            iszero(x) || @test isone(x*inv(x//big(1)))
         end
 
         for x in [E(45)^5 + big(1)*E(45)^10, (E(45)^5)//1 + big(1)*E(45)^10]

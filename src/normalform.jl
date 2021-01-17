@@ -110,8 +110,8 @@ function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where {T}
     if k > 1
         # the trivial reduction E(n)^e → E(n÷k)^(e÷k)
         @debug "Performing trivial reduction from ℚ(ζ$(subscriptify(conductor(α)))) → ℚ(ζ$(subscriptify(conductor(tmp))))"
-        @inbounds for (e, v) in α
-            tmp[div(e, k)] = v
+        @inbounds for (e, c) in exps_coeffs(α)
+            tmp[div(e, k)] = c
         end
     else
         @debug "No trivial reduction is possible"
