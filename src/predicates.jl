@@ -25,23 +25,13 @@ end
 Base.:(==)(α::Cyclotomic{T}, x::R) where {T,R<:Real} = α == Cyclotomic(1, [x])
 Base.:(==)(x::Real, α::Cyclotomic) = α == x
 
-function Base.isapprox(
-    α::Cyclotomic{T},
-    x::S;
-    atol::Real = 0,
-    rtol::Real = atol > 0 ? 0 : sqrt(max(eps(x), maximum(eps, coeffs(α)))),
-) where {T<:AbstractFloat,S<:AbstractFloat}
-    return isapprox(S(α), x; atol = atol, rtol = rtol)
+function Base.isapprox(α::Cyclotomic, a::Real; kwargs...)
+    x, y = reim(Complex{Float64}(α))
+    return isapprox(real(a), x; kwargs...) &&
+           isapprox(one(a), 1.0 + y; kwargs...)
 end
 
-function Base.isapprox(
-    α::Cyclotomic{T},
-    x::S;
-    atol::Real = 0,
-    rtol::Real = atol > 0 ? 0 : eps(x),
-) where {T,S<:AbstractFloat}
-    return isapprox(S(α), x; atol = atol, rtol = rtol)
-end
+Base.isapprox(a::Number, α::Cyclotomic; kwargs...) = isapprox(α, a; kwargs...)
 
 Base.iszero(α::Cyclotomic) =
     all(iszero, values(α)) || (normalform!(α); all(iszero, values(α)))
