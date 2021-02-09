@@ -1,7 +1,7 @@
 name = "Cyclotomics"
 uuid = "da8f5974-afbb-4dc8-91d8-516d5257c83b"
 authors = ["Marek Kaluba <kalmar@amu.edu.pl>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 LRUCache = "8ac3fa9e-de4c-5943-b1dc-09c6b5f20637"
