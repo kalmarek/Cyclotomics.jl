@@ -230,6 +230,9 @@ using Cyclotomics
         @test float(E(5)^2+E(5)^3) == (-1-sqrt(5))/2
         @test 2.0(E(5)^2+E(5)^3) ≈ (-1-sqrt(5))
         @test 2.0(E(5)^2+E(5)^3) != (-1-sqrt(5))
+
+        @test isapprox(1e-17E(5), 0.0, atol=1e-12)
+        @test isapprox(0.0, 1e-17E(5), atol=1e-12)
     end
 
     @testset "embedding" begin
