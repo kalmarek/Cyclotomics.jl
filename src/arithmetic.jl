@@ -137,30 +137,45 @@ function inv!(
         out = one!(out)
     end
 
-    basis, fb = zumbroich_viacomplement(conductor(α))
-    lb = length(basis)
-    conjugates_counter = 0
+    ilead = inv(maximum(abs, coeffs(α)))
+    T <: AbstractFloat && ilead < eps(T) && @warn "Invering element with large lead: $(maximum(abs, coeffs(α)))" α
+    let α = α*ilead # to get better conditioning
 
-    for i = 2:conductor(α)-1
-        conjugates_counter == lb - 1 && break
-        any(x -> gcd(i, first(x)) > 1, fb) && continue
-        conjugates_counter += 1
-        mul!(tmp2, out, conj!(tmp, α, i))
-        copyto!(coeffs(out), coeffs(tmp2))
+        basis, fb = zumbroich_viacomplement(conductor(α))
+        lb = length(basis)
+        conjugates_counter = 0
+
+        for i = 2:conductor(α)-1
+            conjugates_counter == lb - 1 && break
+            any(x -> gcd(i, first(x)) > 1, fb) && continue
+            conjugates_counter += 1
+            mul!(tmp2, out, conj!(tmp, α, i))
+            copyto!(coeffs(out), coeffs(tmp2))
+        end
+
+        # out is now the product of non-trivial Galois conjugates of α:
+        # out = Π_{σ(Gal(𝕂(ζ_n)/𝕂)), σ≠id} σ(α)
+        # since Π_{σ(Gal(𝕂(ζ_n)/𝕂))} σ(α) = norm_𝕂(α) ∈ 𝕂 we have
+        # 1 = α·out/(α·out) = α · out/norm_𝕂(α), hence
+        # α¯¹ = out/norm_𝕂(α)
+
+        norm_𝕂 = reduced_embedding(mul!(tmp2, out, α))
+        # norm_𝕂 should be real by now
+
+        if T <: AbstractFloat
+            float(imag(norm_𝕂)) <= sqrt(eps(T))*conductor(α) || @warn "norm_𝕂  should be real, but it has imaginary part of magnitude $(float(imag(norm_𝕂)))"
+            norm_α = float(real(norm_𝕂))
+            # @info α norm_α
+            # @show float.(reim(norm_𝕂))
+            out = mul!(out, out, inv(norm_α))
+        else
+            @assert conductor(norm_𝕂) == 1 "$norm_ℚ" conductor(norm_𝕂)
+            norm_α = norm_𝕂[0]
+            out = mul!(out, out, inv(norm_α))
+        end
     end
 
-    # out is now the product of non-trivial Galois conjugates of α:
-    # out = Π_{σ(Gal(ℚ(ζ_n)/ℚ)), σ≠id} σ(α)
-    # since Π_{σ(Gal(ℚ(ζ_n)/ℚ))} σ(α) = norm_ℚ(α) ∈ ℚ we have
-    # 1 = α·out/(α·out) = α · out/norm_ℚ(α), hence
-    # α¯¹ = out/norm_ℚ(α)
-
-    norm_ℚ = reduced_embedding(mul!(tmp2, out, α))
-    @assert conductor(norm_ℚ) == 1 "$norm_ℚ" # norm_ℚ is real
-    norm_α = norm_ℚ[0]
-
-    out = mul!(out, out, inv(norm_α))
-
+    mul!(out, out, ilead)
     return out
 end
 
