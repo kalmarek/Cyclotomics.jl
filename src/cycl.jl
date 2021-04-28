@@ -138,8 +138,14 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     return z
 end
 
+Base.complex(α::Cyclotomic{T}) where T = Complex{float(T)}(α)
+Base.complex(α::Cyclotomic{T}) where T <: AbstractFloat = Complex{T}(α)
+
 function Base.float(::Type{T}, α::Cyclotomic) where {T<:AbstractFloat}
-    isreal(α) && return real(Complex{T}(α))
+    αre, αim = real.(Complex{T}.(reim(α)))
+    if abs(αim/αre) <= sqrt(eps(T)) || αim < eps(T)
+        return αre
+    end
     throw(InexactError(:float, T, α))
 end
 
@@ -171,9 +177,7 @@ Base.Rational(α::Cyclotomic{T}) where T<:Integer = Rational{T}(α)
 Base.Rational(α::Cyclotomic{Rational{T}}) where T = Rational{T}(α)
 
 Base.abs2(α::Cyclotomic) = α * conj(α)
+Base.abs(α::Cyclotomic) = abs(complex(α))
 
 Base.real(α::Cyclotomic) = (α + conj(α))/2
-Base.real(α::Cyclotomic{T}) where T<:Integer = div(α + conj(α), 2)
-
 Base.imag(α::Cyclotomic) = -im*(α - conj(α))/2
-Base.imag(α::Cyclotomic{T}) where T<:Integer = -im*div(α - conj(α), 2)
