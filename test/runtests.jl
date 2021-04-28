@@ -333,6 +333,15 @@ using Cyclotomics
             @test_throws InexactError Float64(x)
             @test_throws InexactError Rational(x)
         end
+
+        let x = 0.9999999999999787*E(5)^1 + 0.999999999999992*E(5)^2 + 0.9999999999999889*E(5)^3 + 0.9999999999999796*E(5)^4
+            z = Cyclotomics.roundcoeffs!(deepcopy(x), digits=12)
+            @test x != -1.0
+            @test z == -1.0
+            @test inv(z) == -1.0
+            @test Cyclotomics.droptol!(inv(x) - inv(z), 1e-12) == 0
+        end
+
     end
 
     @testset "Conversions" begin
@@ -373,10 +382,20 @@ using Cyclotomics
 
         @test ComplexF64(x) isa ComplexF64
         @test Complex{BigFloat}(x) isa Complex{BigFloat}
-        γ = 2*big(π)/3
-        @test Complex{BigFloat}(x) ≈ cos(γ) + im*sin(γ)
+        γ = 2*π/3
+        bγ = 2*big(π)/3
+        @test Complex{BigFloat}(x) ≈ cos(bγ) + im*sin(bγ)
 
         @test ComplexF64(x)^2 ≈ ComplexF64(x^2)
+
+        @test complex(x) isa ComplexF64
+        @test complex(x) == cos(γ) + im*sin(γ)
+
+        @test complex(big(1)*x) isa Complex{BigFloat}
+        @test complex(big(1)*x) ≈ cos(bγ) + im*sin(bγ)
+
+        @test abs(x) ≈ 1.0
+        @test abs(big(1)/3*x) ≈ big(1)/3
     end
 
     @testset "Complex arithmetic" begin
