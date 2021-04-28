@@ -127,6 +127,25 @@ Return a copy of `α` with coefficients stored in `SparseVector`.
 """
 SparseArrays.sparse(α::Cyclotomic) = Cyclotomic(sparse(coeffs(α)))
 
+function SparseArrays.droptol!(
+    α::Cyclotomic{T,<:AbstractSparseVector},
+    ε = eps(T) * 1e3,
+) where {T}
+    coeffs(α) .= droptol!(coeffs(α), ε)
+    return α
+end
+
+function roundcoeffs!(
+    α::Cyclotomic{<:AbstractFloat},
+    r::Base.RoundingMode = Base.RoundNearest;
+    kwargs...,
+)
+    for i in eachindex(coeffs(α))
+        coeffs(α)[i] = round(coeffs(α)[i], r; kwargs...)
+    end
+    return α
+end
+
 function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     z = zero(Complex{T})
     rα = reduced_embedding(α)
