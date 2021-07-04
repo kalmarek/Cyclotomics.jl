@@ -152,7 +152,7 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     n = conductor(rα)
     for (e, c) in exps_coeffs(rα)
         γ = 2 * T(π) * T(e) / n
-        z += c * (cos(γ) + im * sin(γ))
+        z += T(c) * (cos(γ) + im * sin(γ))
     end
     return z
 end
