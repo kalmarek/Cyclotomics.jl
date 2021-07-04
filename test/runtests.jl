@@ -396,6 +396,11 @@ using Cyclotomics
 
         @test abs(x) ≈ 1.0
         @test abs(big(1)/3*x) ≈ big(1)/3
+
+        @test ComplexF64 == typeof(@inferred ComplexF64(x))
+        @test ComplexF64 == typeof(@inferred ComplexF64(y))
+        @test ComplexF64 == typeof(@inferred ComplexF64(big(1) * x))
+        @test ComplexF64 == typeof(@inferred ComplexF64(big(1) * y))
     end
 
     @testset "Complex arithmetic" begin
