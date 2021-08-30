@@ -152,7 +152,7 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     n = conductor(rα)
     for (e, c) in exps_coeffs(rα)
         γ = 2 * T(π) * T(e) / n
-        z += c * (cos(γ) + im * sin(γ))
+        z += T(c) * (cos(γ) + im * sin(γ))
     end
     return z
 end
@@ -168,7 +168,7 @@ function Base.float(::Type{T}, α::Cyclotomic) where {T<:AbstractFloat}
     throw(InexactError(:float, T, α))
 end
 
-Base.float(α::Cyclotomic) = float(Float64, α)
+Base.float(α::Cyclotomic) = float(float(valtype(α)), α)
 Base.Float64(α::Cyclotomic) = float(Float64, α)
 
 function _isreal(α::Cyclotomic)
