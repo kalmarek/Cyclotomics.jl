@@ -168,7 +168,7 @@ function Base.float(::Type{T}, α::Cyclotomic) where {T<:AbstractFloat}
     throw(InexactError(:float, T, α))
 end
 
-Base.float(α::Cyclotomic) = float(Float64, α)
+Base.float(α::Cyclotomic) = float(float(valtype(α)), α)
 Base.Float64(α::Cyclotomic) = float(Float64, α)
 
 function _isreal(α::Cyclotomic)

@@ -380,6 +380,9 @@ using Cyclotomics
         # @test y == -1.0
         @test_throws InexactError Float64(x)
 
+        @test float(y//big(1)) isa BigFloat
+        @test Float64(y//big(1)) isa Float64
+
         @test ComplexF64(x) isa ComplexF64
         @test Complex{BigFloat}(x) isa Complex{BigFloat}
         γ = 2*π/3
