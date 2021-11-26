@@ -15,7 +15,7 @@ To access the internals of a cyclotomic use API functions:
  * `normalform!` - bring a cyclotomic to its unique representation as given by
  Zumbroich basis (also available in non-modifying form).
 
-Iteration over non-zero coefficients in `Cyclotomic` is provided by `iterate`
+Iteration over non-zero coefficients in `Cyclotomic` is provided by `exps_coeffs`
 which produces pairs `(exp, coeff)` of exponent and corresponding coefficient.
 """
 struct Cyclotomic{T,A<:AbstractVector{T}} <: Number
