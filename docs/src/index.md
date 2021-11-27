@@ -9,7 +9,7 @@ In summary the package implements
 
 * Cyclotomic numbers as structs based on `SparseVector`s,
 * basic arithmetic on those: module and ring structures that take advantage of (lazy) normalization,
-* a few predicates (e.g. `isreal`) and conversions to `float`s/`Rational`s/`Complex` numbers,
+* a few predicates (e.g. `isreal`) and conversions to `float`/`Rational`/`Complex` numbers,
 * Zumbroich basis (by three different methods), thread-safe and memoized.
 
 ## Example uses
@@ -88,6 +88,25 @@ julia> Rational(E(3) + E(3)^2)
 
 ```
 
+When possible we try to promote to Cyclotomics
+```julia
+julia> E(5) + im
+-ζ₂₀ + ζ₂₀⁴-ζ₂₀⁹-ζ₂₀¹³-ζ₂₀¹⁷
+
+julia> (1.0+2im) + E(5)
+-2.0*ζ₂₀ -1.0*ζ₂₀⁸ -2.0*ζ₂₀⁹ -1.0*ζ₂₀¹² -2.0*ζ₂₀¹³ -1.0*ζ₂₀¹⁶ -2.0*ζ₂₀¹⁷
+
+julia> (1.0+2.0im) - 2E(4)
+1.0
+
+julia> typeof(ans)
+Cyclotomic{Float64, SparseArrays.SparseVector{Float64, Int64}}
+
+julia> isreal((1.0+2.0im) - 2E(4))
+true
+
+```
+
 However cyclotomic numbers can store non-rational algebraic numbers:
 
 ```julia
@@ -110,8 +129,8 @@ Stacktrace:
 julia> z ≈ (-1-sqrt(5))/2
 true
 
-
 ```
+
 ### Low level constructors
 One can also construct `Cyclotomic` directly from a vector, which is then used
 as the underlying vector of coefficients. Here these are dense, while by default
@@ -168,10 +187,10 @@ Base.hash
 One can naively represent cyclotomic number as a vector of `n` coefficients, corresponding to `n`-th root of identity. However since there are relations among them (e.g. the sum of all is equal to `0`), the actual dimension of the vector space is usually much smaller than `n`. Zumbroich basis is the set of `n`-th roots of unity which are linearly independent as vectors in the subspace (i.e. allow to express any cyclotomic number as sum of them).
 
 There are three implementations provided by the package:
-* `zumbroich_plain` following the description in the documentation of [GAP system](https://www.gap-system.org/Manuals/doc/ref/chap60_mj.html#X7F52BEA0862E06F2)
-* `zumbroich_direct` which attempts to compute the basis directly
-* `zumbroich_viacomplement` which computes the complement of the basis (the default).
+* [`zumbroich_plain`](https://github.com/kalmarek/Cyclotomics.jl/blob/76ceeb8822b1d63af2dab328c165a385b2af463a/src/zumbroich.jl#L14) following the description in the documentation of [GAP system](https://www.gap-system.org/Manuals/doc/ref/chap60_mj.html#X7F52BEA0862E06F2)
+* [`zumbroich_direct`](https://github.com/kalmarek/Cyclotomics.jl/blob/76ceeb8822b1d63af2dab328c165a385b2af463a/src/zumbroich.jl#L38) which attempts to compute the basis directly
+* [`zumbroich_viacomplement`](https://github.com/kalmarek/Cyclotomics.jl/blob/76ceeb8822b1d63af2dab328c165a385b2af463a/src/zumbroich.jl#L115) which computes the complement of the basis (the default).
 
 My understanding and the implementation are based on the wonderful documenting comments at the top of [cyclotom.c](https://github.com/gap-system/gap/blob/master/src/cyclotom.c) from GAP project. Check them out!
 
-Note: The package uses function `zumbroich_basis` (which defaults to `zumbroich_viacomplement`) in its source code. To avoid recomputation the basis over and over the function is memoized for `Int`s.
+!!! note The package uses function [`zumbroich_basis`](https://github.com/kalmarek/Cyclotomics.jl/blob/76ceeb8822b1d63af2dab328c165a385b2af463a/src/zumbroich.jl#L152) (which defaults to `zumbroich_viacomplement`) in its source code. To avoid recomputation the basis over and over the function is memoized for `Int` arguments.

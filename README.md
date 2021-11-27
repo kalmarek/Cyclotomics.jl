@@ -5,7 +5,7 @@
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://kalmarek.github.io/Cyclotomics.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://kalmarek.github.io/Cyclotomics.jl/dev)
 
-`Cyclotomics package implements cyclotomic numbers which are sums of roots of unity.
+Cyclotomics package implements cyclotomic numbers which are sums of roots of unity.
 The coefficients of the sum are in general taken from a ring.
 E.g. the imaginary unit is represented by `E(4)`, the fourth root of `1`,
 while algebraic number `(1 + √5)/2` can be written exactly as `E(5) + E(5)^4`.
@@ -14,7 +14,7 @@ In summary the package implements
 
 * Cyclotomic numbers as structs based on `SparseVector`s,
 * basic arithmetic on those: module and ring structures that take advantage of (lazy) normalization,
-* a few predicates (e.g. `isreal`) and conversions to `float`s/`Rational`s/`Complex` numbers,
+* a few predicates (e.g. `isreal`) and conversions to `float`/`Rational`/`Complex` numbers,
 * Zumbroich basis (by three different methods), thread-safe and memoized.
 
 ## Example uses
@@ -92,6 +92,24 @@ julia> Rational(E(3) + E(3)^2)
 -1//1
 
 ```
+When possible we try to promote to Cyclotomics
+```julia
+julia> E(5) + im
+-ζ₂₀ + ζ₂₀⁴-ζ₂₀⁹-ζ₂₀¹³-ζ₂₀¹⁷
+
+julia> (1.0+2im) + E(5)
+-2.0*ζ₂₀ -1.0*ζ₂₀⁸ -2.0*ζ₂₀⁹ -1.0*ζ₂₀¹² -2.0*ζ₂₀¹³ -1.0*ζ₂₀¹⁶ -2.0*ζ₂₀¹⁷
+
+julia> (1.0+2.0im) - 2E(4)
+1.0
+
+julia> typeof(ans)
+Cyclotomic{Float64, SparseArrays.SparseVector{Float64, Int64}}
+
+julia> isreal((1.0+2.0im) - 2E(4))
+true
+
+```
 
 However cyclotomic numbers can store non-rational algebraic numbers:
 
@@ -114,4 +132,5 @@ Stacktrace:
 
 julia> z ≈ (-1-sqrt(5))/2
 true
+
 ```
