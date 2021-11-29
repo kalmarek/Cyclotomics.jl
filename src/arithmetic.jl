@@ -2,7 +2,11 @@
 #   Arithmetic
 
 zero!(α::Cyclotomic{T}) where {T} = (coeffs(α) .= zero(T); α)
-one!(α::Cyclotomic{T}) where {T} = (zero!(α); α[0] = one(α[0]); α)
+function one!(α::Cyclotomic{T}) where {T}
+    zero!(α)
+    α[0] = one(α[0])
+    return α
+end
 Base.zero(α::Cyclotomic, m::Integer = conductor(α)) = zero!(similar(α, m))
 Base.one(α::Cyclotomic) = one!(similar(α))
 
@@ -31,33 +35,44 @@ end
 
 Base.:+(r::Real, α::Cyclotomic) = α + r
 
-mul!(out::Cyclotomic, α::Cyclotomic, c::Real) =
-    (coeffs(out) .= coeffs(α) .* c; out)
-div!(out::Cyclotomic, α::Cyclotomic, c::Real) =
-    (coeffs(out) .= div.(coeffs(α), c); out)
+function mul!(out::Cyclotomic, α::Cyclotomic, c::Real)
+    return (coeffs(out) .= coeffs(α) .* c; out)
+end
+function div!(out::Cyclotomic, α::Cyclotomic, c::Real)
+    return (coeffs(out) .= div.(coeffs(α), c); out)
+end
 
-Base.:*(c::T, α::Cyclotomic{S}) where {S,T<:Real} =
-    mul!(similar(α, promote_type(S, T)), α, c)
+function Base.:*(c::T, α::Cyclotomic{S}) where {S,T<:Real}
+    return mul!(similar(α, promote_type(S, T)), α, c)
+end
 Base.:*(α::Cyclotomic, c::T) where {T<:Real} = c * α
 Base.:(//)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) .// c)
 Base.:(/)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) ./ c)
 
-Base.div(α::Cyclotomic, c::Number) =
-    (T = typeof(div(α[0], c)); div!(similar(α, T), normalform!(α), c))
+function Base.div(α::Cyclotomic, c::Number)
+    T = typeof(div(α[0], c))
+    return div!(similar(α, T), normalform!(α), c)
+end
 
 ###########################
 # Complex arithmetic
 
-Base.promote_rule(::Type{<:Cyclotomic{T}}, ::Type{<:Complex{S}}) where {T,S} =
-    (TT = promote_type(T,S); Cyclotomic{TT, SparseVector{TT, Int}})
+function Base.promote_rule(
+    ::Type{<:Cyclotomic{T}},
+    ::Type{<:Complex{S}},
+) where {T,S}
+    return (TT = promote_type(T, S); Cyclotomic{TT,SparseVector{TT,Int}})
+end
 
 ###########################
 # Ring structure:
 
-add!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
-    (coeffs(out) .= coeffs(α) .+ coeffs(β); out)
-sub!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic) =
-    (coeffs(out) .= coeffs(α) .- coeffs(β); out)
+function add!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic)
+    return (coeffs(out) .= coeffs(α) .+ coeffs(β); out)
+end
+function sub!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic)
+    return (coeffs(out) .= coeffs(α) .- coeffs(β); out)
+end
 
 function mul!(out::Cyclotomic{T}, α::Cyclotomic, β::Cyclotomic) where {T}
     copyto!(coeffs(out), coeffs(mul!(dense(out), α, β)))
@@ -117,8 +132,10 @@ function Base.conj(α::Cyclotomic, n::Integer = -1)
     return conj!(similar(α), α, n)
 end
 
-galois_conj(α::Cyclotomic, n::Integer = -1) =
-    (@assert gcd(n, conductor(α)) == 1; conj(α, n))
+function galois_conj(α::Cyclotomic, n::Integer = -1)
+    @assert gcd(n, conductor(α)) == 1
+    return conj(α, n)
+end
 
 function inv!(out::Cyclotomic{T}, α::Cyclotomic) where {T}
     copyto!(coeffs(out), coeffs(inv!(dense(out), α)))
@@ -138,14 +155,15 @@ function inv!(
     end
 
     ilead = inv(maximum(abs, coeffs(α)))
-    T <: AbstractFloat && ilead < eps(T) && @warn "Invering element with large lead: $(maximum(abs, coeffs(α)))" α
-    let α = α*ilead # to get better conditioning
-
+    T <: AbstractFloat &&
+        ilead < eps(T) &&
+        @warn "Invering element with large lead: $(maximum(abs, coeffs(α)))" α
+    let α = α * ilead
         basis, fb = zumbroich_viacomplement(conductor(α))
         lb = length(basis)
         conjugates_counter = 0
 
-        for i = 2:conductor(α)-1
+        for i in 2:conductor(α)-1
             conjugates_counter == lb - 1 && break
             any(x -> gcd(i, first(x)) > 1, fb) && continue
             conjugates_counter += 1
@@ -163,7 +181,8 @@ function inv!(
         # norm_𝕂 should be real by now
 
         if T <: AbstractFloat
-            float(imag(norm_𝕂)) <= sqrt(eps(T))*conductor(α) || @warn "norm_𝕂  should be real, but it has imaginary part of magnitude $(float(imag(norm_𝕂)))"
+            float(imag(norm_𝕂)) <= sqrt(eps(T)) * conductor(α) ||
+                @warn "norm_𝕂  should be real, but it has imaginary part of magnitude $(float(imag(norm_𝕂)))"
             norm_α = float(real(norm_𝕂))
             # @info α norm_α
             # @show float.(reim(norm_𝕂))
@@ -179,7 +198,9 @@ function inv!(
     return out
 end
 
-Base.inv(α::Cyclotomic{T}) where {T} =
-    (RT = typeof(inv(α[0])); inv!(similar(α, RT), α))
+function Base.inv(α::Cyclotomic{T}) where {T}
+    RT = typeof(inv(α[0]))
+    return inv!(similar(α, RT), α)
+end
 
 Base.:/(α::Cyclotomic, β::Cyclotomic) = α * inv(β)
