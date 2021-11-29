@@ -196,6 +196,9 @@ end
 function Base.Rational{T}(α::Cyclotomic) where {T}
     flag, rα = _isreal(α)
     flag && return Rational{T}(rα[0])
+    if isreal(rα)
+        @error "The cyclotomic is real but it can not be converted to Rational: $rα ≈ $(float(rα))"
+    end
     return throw(InexactError(:Rational, Rational{T}, α))
 end
 
