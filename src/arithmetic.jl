@@ -50,9 +50,10 @@ Base.:*(α::Cyclotomic, c::T) where {T<:Real} = c * α
 Base.:(//)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) .// c)
 Base.:(/)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) ./ c)
 
-function Base.div(α::Cyclotomic, c::Number)
-    T = typeof(div(α[0], c))
-    return div!(similar(α, T), normalform!(α), c)
+function Base.div(α::Cyclotomic{T}, c::Number) where {T}
+    RT = Base._return_type(div, (T, typeof(c)))
+    rα = reduced_embedding(α)
+    return div!(similar(rα, RT), rα, c)
 end
 
 ###########################

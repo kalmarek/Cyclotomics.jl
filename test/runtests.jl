@@ -454,6 +454,8 @@ using Cyclotomics
 
         @test E(4) * im == -1
         @test E(4) - im == 0
+
+        @test E(9) + im // 3 isa Cyclotomic
     end
 
     @testset "dense/sparse" begin
