@@ -7,7 +7,8 @@ function one!(α::Cyclotomic{T}) where {T}
     α[0] = one(α[0])
     return α
 end
-Base.zero(α::Cyclotomic, m::Integer = conductor(α)) = zero!(similar(α, m))
+Base.zero(α::Cyclotomic) = zero!(similar(α))
+Base.zero(α::Cyclotomic, m::Integer) = zero!(similar(α, m))
 Base.one(α::Cyclotomic) = one!(similar(α))
 
 ############################

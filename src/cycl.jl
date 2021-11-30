@@ -111,8 +111,12 @@ Matched iterator over exponents is provided by @ref(exponents).
 Base.values(α::Cyclotomic) = (c for (e, c) in exps_coeffs(α))
 Base.valtype(::Cyclotomic{T}) where {T} = T
 
-Base.similar(α::Cyclotomic, T::Type = valtype(α)) = similar(α, T, conductor(α))
+function Base.similar(α::Cyclotomic, T::Type = valtype(α))
+    return Cyclotomic(similar(coeffs(α), T))
+end
+
 Base.similar(α::Cyclotomic, m::Integer) = similar(α, valtype(α), m)
+
 function Base.similar(α::Cyclotomic, T::Type, n::Integer)
     return Cyclotomic(similar(coeffs(α), T, n))
 end
