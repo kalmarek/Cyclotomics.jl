@@ -100,15 +100,6 @@ function sub!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic)
 end
 
 function mul!(out::Cyclotomic{T}, α::Cyclotomic, β::Cyclotomic) where {T}
-    copyto!(coeffs(out), coeffs(mul!(dense(out), α, β)))
-    return out
-end
-
-function mul!(
-    out::Cyclotomic{T,<:DenseVector},
-    α::Cyclotomic,
-    β::Cyclotomic,
-) where {T}
     if out === α || out === β
         out = similar(out)
     end
