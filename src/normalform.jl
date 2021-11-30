@@ -90,7 +90,7 @@ function embed(α::Cyclotomic, m::Integer)
 end
 
 function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where {T}
-    all(iszero, exponents(α)) && return Cyclotomic{T,Vector{T}}(1, [α[0]])
+    all(iszero, exponents(α)) && return Cyclotomic{T,Vector{T}}([α[0]])
 
     k = gcd(conductor(α), exponents(α)...)
     @debug "gcd(exponents(α)) = $k" collect(exponents(α))
@@ -98,10 +98,10 @@ function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where {T}
     tmp = if k > 1
         d = div(conductor(α), k)
         @debug "Reducing the embedding ring to $T(ζ$(subscriptify(d)))"
-        tmp = Cyclotomic{T,Vector{T}}(d, zeros(T, d))
+        tmp = Cyclotomic{T,Vector{T}}(zeros(T, d))
     else
         n = conductor(α)
-        tmp = Cyclotomic{T,Vector{T}}(n, zeros(T, n))
+        tmp = Cyclotomic{T,Vector{T}}(zeros(T, n))
     end
     # now tmp has dense storage
 
@@ -128,7 +128,7 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer = 1) where {T,V}
     tmp = _tmp_for_reduced_embedding(normalform!(α))
 
     if conductor(tmp) == 1
-        res = Cyclotomic{T,V}(conductor(tmp), coeffs(tmp))
+        res = Cyclotomic{T,V}(coeffs(tmp))
         return res
     end
 
@@ -148,7 +148,7 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer = 1) where {T,V}
             -tmp[first(exponents(tmp))]
         end
         @debug "Cyclotomic is real:" α = val
-        res = Cyclotomic{T,V}(m, similar(coeffs(α), m))
+        res = Cyclotomic{T,V}(similar(coeffs(α), m))
         zero!(res)
         res[0] = val
         return res
@@ -217,10 +217,10 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer = 1) where {T,V}
             tmp[i*p] = zero(T)
         end
 
-        tmp = Cyclotomic{T,Vector{T}}(n_p, resize!(coeffs(tmp), n_p))
+        tmp = Cyclotomic{T,Vector{T}}(resize!(coeffs(tmp), n_p))
     end
 
-    res = Cyclotomic{T,V}(conductor(tmp), coeffs(tmp))
+    res = Cyclotomic{T,V}(coeffs(tmp))
 
     return res
 end

@@ -16,25 +16,21 @@ Iteration over non-zero coefficients in `Cyclotomic` is provided by `exps_coeffs
 which produces pairs `(exp, coeff)` of exponent and corresponding coefficient.
 """
 struct Cyclotomic{T,A<:AbstractVector{T}} <: Number
-    n::Int
     coeffs::A
 end
 
-function Cyclotomic(v::V) where {V<:AbstractVector}
-    return Cyclotomic{eltype(v),V}(length(v), v)
-end
-function Cyclotomic{T}(α::Cyclotomic) where {T}
-    return Cyclotomic(conductor(α), convert.(T, coeffs(α)))
-end
-function Cyclotomic{T,V}(α::Cyclotomic) where {T,V}
-    return Cyclotomic{T,V}(conductor(α), convert.(T, coeffs(α)))
-end
+Cyclotomic{T}(α::Cyclotomic) where {T} = Cyclotomic(convert.(T, coeffs(α)))
 
-Cyclotomic{T,V}(a::R) where {T,V,R<:Real} = Cyclotomic{T,V}(1, T[a])
+function Cyclotomic{T,A}(c::Cyclotomic{S,B}) where {T,S,A<:AbstractVector{T},B}
+    return Cyclotomic{T,A}(coeffs(c))
+end
 
 Cyclotomic(c::Complex{T}) where {T} = Cyclotomic{T,SparseVector{T,Int}}(c)
-function Cyclotomic{T,V}(c::C) where {T,V,C<:Complex}
-    return Cyclotomic{T,V}(real(c)) + E(4) * Cyclotomic{T,V}(imag(c))
+
+Cyclotomic{T,A}(c::Real) where {T,A<:AbstractVector{T}} = Cyclotomic{T,A}(T[c])
+
+function Cyclotomic{T,A}(c::Complex) where {T,A<:AbstractVector{T}}
+    return Cyclotomic{T,A}(real(c)) + E(4) * Cyclotomic{T,A}(imag(c))
 end
 
 """
@@ -47,7 +43,7 @@ function E(n, i = 1)
     coeffs = sparsevec([i + 1], [1], n)
     sizehint!(coeffs.nzind, k)
     sizehint!(coeffs.nzval, k)
-    return Cyclotomic(n, coeffs)
+    return Cyclotomic(coeffs)
 end
 
 ####
@@ -57,7 +53,7 @@ end
     conductor(α::Cyclotomic)
 Return the conductor, i.e. the degree of cyclotomic field `α` belongs to.
 """
-conductor(α::Cyclotomic) = α.n
+conductor(α::Cyclotomic) = length(coeffs(α))
 
 """
     coeffs(α::Cyclotomic)
@@ -125,7 +121,7 @@ end
 Return a copy of `α` with coefficients stored in dense `Vector`.
 """
 function dense(α::Cyclotomic{T}) where {T}
-    return Cyclotomic{T,Vector{T}}(conductor(α), coeffs(α))
+    return Cyclotomic{T,Vector{T}}(coeffs(α))
 end
 
 """
