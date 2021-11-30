@@ -153,8 +153,17 @@ function galois_conj(α::Cyclotomic, n::Integer = -1)
     return conj(α, n)
 end
 
-function inv!(out::Cyclotomic{T}, α::Cyclotomic) where {T}
-    copyto!(coeffs(out), coeffs(inv!(dense(out), α)))
+function Base.inv(α::Cyclotomic{T}) where {T}
+    rα = reduced_embedding(α)
+    RT = Base._return_type(inv, (T,))
+    return inv!(similar(rα, RT), rα)
+end
+
+function inv!(
+    out::Cyclotomic{T,<:AbstractSparseVector},
+    α::Cyclotomic,
+) where {T}
+    copyto!(coeffs(out), coeffs(inv!(dense(zero!(out)), α)))
     return out
 end
 
@@ -211,12 +220,7 @@ function inv!(
     end
 
     mul!(out, out, ilead)
-    return out
-end
-
-function Base.inv(α::Cyclotomic{T}) where {T}
-    RT = typeof(inv(α[0]))
-    return inv!(similar(α, RT), α)
+    return _maybe_normalize!(out)
 end
 
 Base.:/(α::Cyclotomic, β::Cyclotomic) = α * inv(β)
