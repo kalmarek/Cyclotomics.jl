@@ -68,11 +68,35 @@ end
 ###########################
 # Ring structure:
 
+_enable_intermediate_normalization() = false
+
+function _maybe_normalize!(
+    α::Cyclotomic{<:Rational{T}},
+) where {T<:Base.BitInteger}
+
+    # if false
+    if _enable_intermediate_normalization() && !isnormalized(α)
+        k = (typemax(T) >> 4 * sizeof(T))
+        for v in values(α)
+            z = abs(v)
+            if max(numerator(z), denominator(z)) > k
+                normalform!(α)
+                break
+            end
+        end
+    end
+    return α
+end
+
+_maybe_normalize!(α::Cyclotomic) = α
+
 function add!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic)
-    return (coeffs(out) .= coeffs(α) .+ coeffs(β); out)
+    coeffs(out) .= coeffs(α) .+ coeffs(β)
+    return _maybe_normalize!(out)
 end
 function sub!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic)
-    return (coeffs(out) .= coeffs(α) .- coeffs(β); out)
+    coeffs(out) .= coeffs(α) .- coeffs(β)
+    return _maybe_normalize!(out)
 end
 
 function mul!(out::Cyclotomic{T}, α::Cyclotomic, β::Cyclotomic) where {T}
@@ -96,7 +120,7 @@ function mul!(
         end
     end
 
-    return out
+    return _maybe_normalize!(out)
 end
 
 for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
