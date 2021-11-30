@@ -26,7 +26,7 @@ function zumbroich_plain(n::Integer, m::Integer = 1)
     sizehint!(exps, 2 * length(factors_n))
 
     for (p, ν) in factors_n
-        for k = factors_m[p]:ν-1
+        for k in factors_m[p]:ν-1
             push!(exps, [div(n, p^(k + 1)) * j for j in J(k, p)])
         end
     end
@@ -42,14 +42,14 @@ function zumbroich_direct(n::Integer)
     factor_n = Primes.factor(n)
 
     if iseven(n)
-        for k = 1:factor_n[2]-1
+        for k in 1:factor_n[2]-1
             basis = union!(basis, basis .+ (n >> (k + 1)))
         end
     end
 
     for (p, ν) in factor_n
         p == 2 && continue
-        for k = 0:ν-1
+        for k in 0:ν-1
             ran = div(n, p^(k + 1)) .* J(k, p)
             new_basis = typeof(basis)()
             sizehint!(new_basis, length(basis) * length(ran))
@@ -101,8 +101,9 @@ end
 
 Base.length(fr::ForbiddenResidues) = length(fr.primes_powers)
 
-Base.iterate(fr::ForbiddenResidues, s = 1) =
-    (s > length(fr) ? nothing : (fr.primes_powers[s], s + 1))
+function Base.iterate(fr::ForbiddenResidues, s = 1)
+    return (s > length(fr) ? nothing : (fr.primes_powers[s], s + 1))
+end
 
 @inline function Base.in(n::Integer, fr::ForbiddenResidues)
     @assert n ≥ 0
@@ -113,7 +114,6 @@ Base.iterate(fr::ForbiddenResidues, s = 1) =
 end
 
 function zumbroich_viacomplement(n::Integer, factor_n::Primes.Factorization)
-
     @debug "memoizing Zumbroich basis for ℚ(ζ_$n)"
 
     # following the wonderful documenting comments at the top of
@@ -129,7 +129,7 @@ function zumbroich_viacomplement(n::Integer, factor_n::Primes.Factorization)
     exps = BitSet()
     sizehint!(exps, Primes.totient(factor_n))
     count = 0
-    for i = 0:n-1
+    for i in 0:n-1
         i ∈ forbidden && continue
         count += 1
         # exps[count] = i
@@ -143,10 +143,18 @@ import Memoize
 import LRUCache
 
 @static if VERSION >= v"1.2.0"
-Memoize.@memoize LRUCache.LRU{Tuple{Int}, Tuple{BitSet, ForbiddenResidues{Int}}}(maxsize=1000) zumbroich_viacomplement(n::Int) =
-    zumbroich_viacomplement(n, Primes.factor(n))
+    Memoize.@memoize LRUCache.LRU{
+        Tuple{Int},
+        Tuple{BitSet,ForbiddenResidues{Int}},
+    }(
+        maxsize = 1000,
+    ) function zumbroich_viacomplement(n::Int)
+        return zumbroich_viacomplement(n, Primes.factor(n))
+    end
 end
 
-zumbroich_viacomplement(n::Integer) = zumbroich_viacomplement(n, Primes.factor(n))
+function zumbroich_viacomplement(n::Integer)
+    return zumbroich_viacomplement(n, Primes.factor(n))
+end
 
 zumbroich_basis(n::Integer) = first(zumbroich_viacomplement(n))

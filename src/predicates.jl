@@ -31,7 +31,11 @@ function Base.isapprox(α::Cyclotomic, a::Real; kwargs...)
            isapprox(one(a), 1.0 + y; kwargs...)
 end
 
-function Base.isapprox(α::Cyclotomic{T}, β::Cyclotomic{T}; kwargs...) where T<:AbstractFloat
+function Base.isapprox(
+    α::Cyclotomic{T},
+    β::Cyclotomic{T};
+    kwargs...,
+) where {T<:AbstractFloat}
     x, y = reim(Complex{T}(α))
     z, w = reim(Complex{T}(β))
     return isapprox(x, z; kwargs...) && isapprox(y, w; kwargs...)
@@ -39,14 +43,17 @@ end
 
 Base.isapprox(a::Number, α::Cyclotomic; kwargs...) = isapprox(α, a; kwargs...)
 
-Base.iszero(α::Cyclotomic) =
-    all(iszero, values(α)) || (normalform!(α); all(iszero, values(α)))
+function Base.iszero(α::Cyclotomic)
+    return all(iszero, values(α)) || (normalform!(α); all(iszero, values(α)))
+end
 
-Base.isreal(α::Cyclotomic) =
-    α == conj(α) || conductor(reduced_embedding(α)) == 1
+function Base.isreal(α::Cyclotomic)
+    return α == conj(α) || conductor(reduced_embedding(α)) == 1
+end
 
-Base.isreal(α::Cyclotomic{T}) where T<:AbstractFloat = 
-    α ≈ conj(α) || conductor(reduced_embedding(α)) == 1
+function Base.isreal(α::Cyclotomic{T}) where {T<:AbstractFloat}
+    return α ≈ conj(α) || conductor(reduced_embedding(α)) == 1
+end
 
 function Base.isone(α::Cyclotomic)
     β = reduced_embedding(α)

@@ -34,10 +34,10 @@ function Base.show(io::IO, α::Cyclotomic{T}) where {T}
                 print(io, coeff)
                 continue
             end
-            if isone(coeff) && T<:Integer
+            if isone(coeff) && T <: Integer
                 sign_str = i == 1 ? " " : " + "
                 coeff_str = ""
-            elseif isone(-coeff) && T<:Integer
+            elseif isone(-coeff) && T <: Integer
                 sign_str = "-"
                 coeff_str = ""
             elseif coeff > zero(coeff)

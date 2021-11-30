@@ -6,14 +6,11 @@
 Element of `n`-th cyclotomic field with coefficients stored as `coeffs`.
 
 To access the internals of a cyclotomic use API functions:
- * `conductor` - the conductor of a cyclotomic, i.e. the `n` used currently for
- storage. This might not be the minimal embeding field of a cyclotomic.
- * `getindex`/`setindex!` - use `α[i]` to access the coefficient at `i`-th power
- of a cyclotomic (in a circular fashion)
- * `values`/`exponents` - paired iterators over _non zero_ coefficients/exponents
- corresponding to _non-zero_ coefficients
- * `normalform!` - bring a cyclotomic to its unique representation as given by
- Zumbroich basis (also available in non-modifying form).
+ * `conductor` - the conductor of a cyclotomic, i.e. the `n` used currently for storage. This might not be the minimal embeding field of a cyclotomic.
+ * `coeffs` - returns a reference to the underlying vector containing the coefficients.
+ * `getindex`/`setindex!` - use `α[i]` to access the coefficient at `i`-th power of the root of unity (in a circular fashion).
+ * `values`/`exponents` - paired iterators over _non zero_ coefficients/exponents corresponding to _non-zero_ coefficients
+ * `normalform!` - bring a cyclotomic to its unique representation as given by Zumbroich basis (also available in non-modifying form).
 
 Iteration over non-zero coefficients in `Cyclotomic` is provided by `exps_coeffs`
 which produces pairs `(exp, coeff)` of exponent and corresponding coefficient.
@@ -23,16 +20,22 @@ struct Cyclotomic{T,A<:AbstractVector{T}} <: Number
     coeffs::A
 end
 
-Cyclotomic(v::V) where {V<:AbstractVector} = Cyclotomic{eltype(v),V}(length(v), v)
-Cyclotomic{T}(α::Cyclotomic) where {T} = Cyclotomic(conductor(α), convert.(T, coeffs(α)))
-Cyclotomic{T,V}(α::Cyclotomic) where {T,V} =
-    Cyclotomic{T,V}(conductor(α), convert.(T, coeffs(α)))
+function Cyclotomic(v::V) where {V<:AbstractVector}
+    return Cyclotomic{eltype(v),V}(length(v), v)
+end
+function Cyclotomic{T}(α::Cyclotomic) where {T}
+    return Cyclotomic(conductor(α), convert.(T, coeffs(α)))
+end
+function Cyclotomic{T,V}(α::Cyclotomic) where {T,V}
+    return Cyclotomic{T,V}(conductor(α), convert.(T, coeffs(α)))
+end
 
 Cyclotomic{T,V}(a::R) where {T,V,R<:Real} = Cyclotomic{T,V}(1, T[a])
 
-Cyclotomic(c::Complex{T}) where T = Cyclotomic{T, SparseVector{T, Int}}(c)
-Cyclotomic{T,V}(c::C) where {T,V,C<:Complex} =
-    Cyclotomic{T,V}(real(c)) + E(4) * Cyclotomic{T,V}(imag(c))
+Cyclotomic(c::Complex{T}) where {T} = Cyclotomic{T,SparseVector{T,Int}}(c)
+function Cyclotomic{T,V}(c::C) where {T,V,C<:Complex}
+    return Cyclotomic{T,V}(real(c)) + E(4) * Cyclotomic{T,V}(imag(c))
+end
 
 """
     E(n[, i=1])
@@ -69,14 +72,14 @@ function _to_index(α::Cyclotomic, idx::Integer)
     return (idx % conductor(α)) + conductor(α) + 1
 end
 
-Base.@propagate_inbounds function Base.getindex(α::Cyclotomic, exp::Integer)
-    return α.coeffs[_to_index(α, exp)]
+function Base.getindex(α::Cyclotomic, exp::Integer)
+    return @inbounds α.coeffs[_to_index(α, exp)]
 end
 
 Base.getindex(α::Cyclotomic, itr) = [α[i] for i in itr]
 
-Base.@propagate_inbounds function Base.setindex!(α::Cyclotomic, val, exp::Integer)
-    α.coeffs[_to_index(α, exp)] = val
+function Base.setindex!(α::Cyclotomic, val, exp::Integer)
+    @inbounds α.coeffs[_to_index(α, exp)] = val
     return val
 end
 
@@ -113,13 +116,17 @@ Base.valtype(::Cyclotomic{T}) where {T} = T
 
 Base.similar(α::Cyclotomic, T::Type = valtype(α)) = similar(α, T, conductor(α))
 Base.similar(α::Cyclotomic, m::Integer) = similar(α, valtype(α), m)
-Base.similar(α::Cyclotomic, T::Type, n::Integer) = Cyclotomic(similar(coeffs(α), T, n))
+function Base.similar(α::Cyclotomic, T::Type, n::Integer)
+    return Cyclotomic(similar(coeffs(α), T, n))
+end
 
 """
     dense(α::Cyclotomic)
 Return a copy of `α` with coefficients stored in dense `Vector`.
 """
-dense(α::Cyclotomic{T}) where {T} = Cyclotomic{T,Vector{T}}(conductor(α), coeffs(α))
+function dense(α::Cyclotomic{T}) where {T}
+    return Cyclotomic{T,Vector{T}}(conductor(α), coeffs(α))
+end
 
 """
     sparse(α::Cyclotomic)
@@ -157,15 +164,15 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
     return z
 end
 
-Base.complex(α::Cyclotomic{T}) where T = Complex{float(T)}(α)
-Base.complex(α::Cyclotomic{T}) where T <: AbstractFloat = Complex{T}(α)
+Base.complex(α::Cyclotomic{T}) where {T} = Complex{float(T)}(α)
+Base.complex(α::Cyclotomic{T}) where {T<:AbstractFloat} = Complex{T}(α)
 
 function Base.float(::Type{T}, α::Cyclotomic) where {T<:AbstractFloat}
     αre, αim = real.(Complex{T}.(reim(α)))
-    if abs(αim/αre) <= sqrt(eps(T)) || αim < eps(T)
+    if abs(αim / αre) <= sqrt(eps(T)) || αim < eps(T)
         return αre
     end
-    throw(InexactError(:float, T, α))
+    return throw(InexactError(:float, T, α))
 end
 
 Base.float(α::Cyclotomic) = float(float(valtype(α)), α)
@@ -183,20 +190,23 @@ end
 function Base.Int(α::Cyclotomic)
     flag, rα = _isreal(α)
     flag && return Int(rα[0])
-    throw(InexactError(:Int, Int, α))
+    return throw(InexactError(:Int, Int, α))
 end
 
 function Base.Rational{T}(α::Cyclotomic) where {T}
     flag, rα = _isreal(α)
     flag && return Rational{T}(rα[0])
-    throw(InexactError(:Rational, Rational{T}, α))
+    if isreal(rα)
+        @error "The cyclotomic is real but it can not be converted to Rational: $rα ≈ $(float(rα))"
+    end
+    return throw(InexactError(:Rational, Rational{T}, α))
 end
 
-Base.Rational(α::Cyclotomic{T}) where T<:Integer = Rational{T}(α)
-Base.Rational(α::Cyclotomic{Rational{T}}) where T = Rational{T}(α)
+Base.Rational(α::Cyclotomic{T}) where {T<:Integer} = Rational{T}(α)
+Base.Rational(α::Cyclotomic{Rational{T}}) where {T} = Rational{T}(α)
 
 Base.abs2(α::Cyclotomic) = α * conj(α)
 Base.abs(α::Cyclotomic) = abs(complex(α))
 
-Base.real(α::Cyclotomic) = (α + conj(α))/2
-Base.imag(α::Cyclotomic) = -im*(α - conj(α))/2
+Base.real(α::Cyclotomic) = (α + conj(α)) / 2
+Base.imag(α::Cyclotomic) = -im * (α - conj(α)) / 2

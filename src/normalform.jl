@@ -31,7 +31,6 @@ function normalform!(
     α::Cyclotomic{T,<:DenseVector};
     basis_forbidden = zumbroich_viacomplement(conductor(α)),
 ) where {T}
-
     basis, forbidden = basis_forbidden
     isnormalized(α, basis) && return α
     for fb in forbidden
@@ -56,7 +55,7 @@ function _replace_exponent!(α::Cyclotomic, exp::Integer, fb)
         # TODO: this doesn't work
         # α[exp .+ 1:m:m*(p-1)] .-= val
 
-        for i = 1:p-1
+        for i in 1:p-1
             α[exp+i*m] -= val
             # exp + i*m is not guaranteed to be allowed, but it's larger than exp and hence will be dealt later
         end
@@ -91,7 +90,6 @@ function embed(α::Cyclotomic, m::Integer)
 end
 
 function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where {T}
-
     all(iszero, exponents(α)) && return Cyclotomic{T,Vector{T}}(1, [α[0]])
 
     k = gcd(conductor(α), exponents(α)...)
@@ -115,7 +113,7 @@ function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where {T}
         end
     else
         @debug "No trivial reduction is possible"
-        copyto!(tmp.coeffs, coeffs(α))
+        copyto!(coeffs(tmp), coeffs(α))
     end
     return tmp
 end
@@ -127,7 +125,6 @@ Return the reduced embedding of `α` into `m`-th cyclotomic field.
 When `m=1`, the embedding into possibly smallest degree is returned.
 """
 function reduced_embedding(α::Cyclotomic{T,V}, m::Integer = 1) where {T,V}
-
     tmp = _tmp_for_reduced_embedding(normalform!(α))
 
     if conductor(tmp) == 1
@@ -144,8 +141,7 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer = 1) where {T,V}
 
     if all(p == q for (p, q, _) in forbidden) && # conductor(tmp) is square-free
        phi_nc == nz && # tmp is supported on φ(n) elements
-       _all_equal(tmp, exponents(tmp)) # all nz coeffs of tmp are equal
-
+       _all_equal(tmp, exponents(tmp))
         val = if iseven(length(forbidden))
             tmp[first(exponents(tmp))]
         else
@@ -194,7 +190,7 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer = 1) where {T,V}
         n_p = n ÷ p
 
         equal_on_classes = true
-        for pe = 0:p:(n-1)
+        for pe in 0:p:(n-1)
             equal_on_classes || break
             if !_all_equal(tmp, pe .+ (n_p .* (1:p-1)))
                 equal_on_classes = false
@@ -208,7 +204,7 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer = 1) where {T,V}
 
         @debug "cyclotomic is constant over residue classes (mod $(n_p)), reducing"
 
-        for pe = 0:p:(n-1)
+        for pe in 0:p:(n-1)
             # replace sum_i(tmp[p*e + i*n÷p]) (1 ≤ i ≤ p-1)
             # inverse to normalform! over p
             @debug "replacing $pe-th power by $(pe + n_p)-th:" tmp[pe] -tmp[pe+n_p]
@@ -216,12 +212,12 @@ function reduced_embedding(α::Cyclotomic{T,V}, m::Integer = 1) where {T,V}
             tmp[pe.+(n_p.*(1:p-1))] .= zero(T)
         end
 
-        for i = 1:n_p
+        for i in 1:n_p
             tmp[i] = tmp[i*p]
             tmp[i*p] = zero(T)
         end
 
-        tmp = Cyclotomic{T,Vector{T}}(n_p, resize!(tmp.coeffs, n_p))
+        tmp = Cyclotomic{T,Vector{T}}(n_p, resize!(coeffs(tmp), n_p))
     end
 
     res = Cyclotomic{T,V}(conductor(tmp), coeffs(tmp))
