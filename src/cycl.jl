@@ -1,6 +1,7 @@
 ###############################################################################
 #
 #   Cyclotomics
+abstract type AbstractCyclotomic <: Number end
 """
     Cyclotomic(n, coeffs::AbstractVector)
 Element of `n`-th cyclotomic field with coefficients stored as `coeffs`.
@@ -15,7 +16,7 @@ To access the internals of a cyclotomic use API functions:
 Iteration over non-zero coefficients in `Cyclotomic` is provided by `exps_coeffs`
 which produces pairs `(exp, coeff)` of exponent and corresponding coefficient.
 """
-struct Cyclotomic{T,A<:AbstractVector{T}} <: Number
+struct Cyclotomic{T,A<:AbstractVector{T}} <: AbstractCyclotomic
     coeffs::A
 end
 
