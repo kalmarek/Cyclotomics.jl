@@ -15,7 +15,7 @@ storage the operation will need at least one dense `tmp::Cyclotomic`.
 function normalform!(
     α::Cyclotomic{T,<:AbstractSparseVector},
     basis_forbidden = zumbroich_viacomplement(conductor(α)),
-) where T
+) where {T}
     isnormalized(α, first(basis_forbidden)) && return α
     tmp = dense(α)
     return normalform!(α, tmp, basis_forbidden = basis_forbidden)

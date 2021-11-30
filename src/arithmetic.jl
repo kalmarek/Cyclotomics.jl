@@ -168,14 +168,12 @@ function inv!(
     return out
 end
 
-
 @static if VERSION >= v"1.2.0"
-    Memoize.@memoize LRUCache.LRU{
-        Tuple{Int},
-        BitSet,
-    }(
-        maxsize = 10000,
-    ) coprimes(n::Int) = BitSet(i for i in 1:n if gcd(i, n) == 1)
+    Memoize.@memoize LRUCache.LRU{Tuple{Int},BitSet}(maxsize = 10000) function coprimes(
+        n::Int,
+    )
+        return BitSet(i for i in 1:n if gcd(i, n) == 1)
+    end
 end
 
 function inv!(

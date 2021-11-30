@@ -3,8 +3,8 @@
 #   Cyclotomics
 abstract type AbstractCyclotomic <: Number end
 """
-    Cyclotomic(n, coeffs::AbstractVector)
-Element of `n`-th cyclotomic field with coefficients stored as `coeffs`.
+    Cyclotomic(coeffs::AbstractVector)
+Element of `length(coeffs)`-th cyclotomic field with coefficients stored as `coeffs`.
 
 To access the internals of a cyclotomic use API functions:
  * `conductor` - the conductor of a cyclotomic, i.e. the `n` used currently for storage. This might not be the minimal embeding field of a cyclotomic.
