@@ -139,6 +139,7 @@ function SparseArrays.droptol!(
     α::Cyclotomic{T,<:AbstractSparseVector},
     ε = eps(T) * 1e3,
 ) where {T}
+    normalform!(α)
     coeffs(α) .= droptol!(coeffs(α), ε)
     return α
 end
