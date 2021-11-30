@@ -167,11 +167,21 @@ function inv!(
     return out
 end
 
+
+@static if VERSION >= v"1.2.0"
+    Memoize.@memoize LRUCache.LRU{
+        Tuple{Int},
+        BitSet,
+    }(
+        maxsize = 10000,
+    ) coprimes(n::Int) = BitSet(i for i in 1:n if gcd(i, n) == 1)
+end
+
 function inv!(
-    out::Cyclotomic{T,<:DenseVector},
+    out::Cyclotomic{T},
     α::Cyclotomic,
-    tmp = similar(out),
-    tmp2 = similar(out),
+    tmp = zero(out),
+    tmp2 = zero(out),
 ) where {T}
     if out === α
         out = one(out)
@@ -179,47 +189,44 @@ function inv!(
         out = one!(out)
     end
 
-    ilead = inv(maximum(abs, coeffs(α)))
-    T <: AbstractFloat &&
-        ilead < eps(T) &&
-        @warn "Invering element with large lead: $(maximum(abs, coeffs(α)))" α
-    let α = α * ilead
-        basis, fb = zumbroich_viacomplement(conductor(α))
-        lb = length(basis)
-        conjugates_counter = 0
+    let α = α
+        basis_fb = zumbroich_viacomplement(conductor(α))
 
-        for i in 2:conductor(α)-1
-            conjugates_counter == lb - 1 && break
-            any(x -> gcd(i, first(x)) > 1, fb) && continue
-            conjugates_counter += 1
+        # begin
+        #     A1 = [conj(α, i) for i in coprimes(conductor(α))]
+        #     A2 = [normalform!(c, tmp, basis_forbidden = basis_fb) for c in A1]
+        #     conjugates = unique!(coeffs, A2)
+        #     normalform!(α, tmp, basis_forbidden=basis_fb)
+        # end
+        #
+        # for c in conjugates
+        #     c == α && continue
+        #     mul!(tmp, out, c)
+        #     copyto!(coeffs(out), coeffs(tmp))
+        #     normalform!(out, tmp, basis_forbidden=basis_fb)
+        # end
+
+        for i in coprimes(conductor(α))
+            i < 2 && continue
             mul!(tmp2, out, conj!(tmp, α, i))
             copyto!(coeffs(out), coeffs(tmp2))
+            normalform!(out, tmp, basis_forbidden = basis_fb)
         end
 
-        # out is now the product of non-trivial Galois conjugates of α:
+        # The idea:
+        # out is the product of non-trivial Galois conjugates of α:
         # out = Π_{σ(Gal(𝕂(ζ_n)/𝕂)), σ≠id} σ(α)
         # since Π_{σ(Gal(𝕂(ζ_n)/𝕂))} σ(α) = norm_𝕂(α) ∈ 𝕂 we have
         # 1 = α·out/(α·out) = α · out/norm_𝕂(α), hence
         # α¯¹ = out/norm_𝕂(α)
 
-        norm_𝕂 = reduced_embedding(mul!(tmp2, out, α))
-        # norm_𝕂 should be real by now
+        # however we don't necessarily take product of all of them as visible in the loop above;
 
-        if T <: AbstractFloat
-            float(imag(norm_𝕂)) <= sqrt(eps(T)) * conductor(α) ||
-                @warn "norm_𝕂  should be real, but it has imaginary part of magnitude $(float(imag(norm_𝕂)))"
-            norm_α = float(real(norm_𝕂))
-            # @info α norm_α
-            # @show float.(reim(norm_𝕂))
-            out = mul!(out, out, inv(norm_α))
-        else
-            @assert conductor(norm_𝕂) == 1 "$norm_ℚ" conductor(norm_𝕂)
-            norm_α = norm_𝕂[0]
-            out = mul!(out, out, inv(norm_α))
-        end
+        norm_𝕂 = reduced_embedding(mul!(tmp, out, α))
+        out = mul!(tmp, out, inv(norm_𝕂[0]))
+        copyto!(coeffs(out), coeffs(tmp))
     end
 
-    mul!(out, out, ilead)
     return _maybe_normalize!(out)
 end
 
