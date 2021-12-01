@@ -115,8 +115,6 @@ function Base.similar(α::Cyclotomic, T::Type = valtype(α))
     return Cyclotomic(similar(coeffs(α), T))
 end
 
-Base.similar(α::Cyclotomic, m::Integer) = similar(α, valtype(α), m)
-
 function Base.similar(α::Cyclotomic, T::Type, n::Integer)
     return Cyclotomic(similar(coeffs(α), T, n))
 end
