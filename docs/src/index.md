@@ -31,7 +31,7 @@ julia> w = e + e^2 + e^8 + e^11 + e^17 + e^26 + e^29 + e^38 + e^44
 ```
 
 Since the vector space spanned by `45`-th roots of unity is of dimension less
-than `44` not all roots are needed to express a cyclotomic number of degree `45`.
+than `45` not all roots are needed to express a cyclotomic number of degree `45`.
 For example the following is a different way to write `w`:
 ```julia
 julia> x = E(45) + E(45)^5 # or E(45) + E(9)
@@ -137,13 +137,13 @@ as the underlying vector of coefficients. Here these are dense, while by default
 `Cyclotomic` uses sparse storage.
 
 ```julia
-julia> Cyclotomic(5, [0,1,0,0,0])
+julia> Cyclotomic([0,1,0,0,0])
  ζ₅
 
-julia> Cyclotomic(5, [0,0,1,0,0])
+julia> Cyclotomic([0,0,1,0,0])
  ζ₅²
 
-julia> Cyclotomic(5, [1,1,1,1,1]) # the sum of all roots == 0
+julia> Cyclotomic([1,1,1,1,1]) # the sum of all roots == 0
  0
 
 ```

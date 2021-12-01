@@ -13,8 +13,8 @@ function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
     coeffs(α) == coeffs(β) && return true
 
     if conductor(α) == conductor(β)
-        normalform!(α)
-        normalform!(β)
+        α = normalform!(α)
+        β = normalform!(β)
         return coeffs(α) == coeffs(β)
     else
         l = lcm(conductor(α), conductor(β))
@@ -22,7 +22,7 @@ function Base.:(==)(α::Cyclotomic, β::Cyclotomic)
     end
 end
 
-Base.:(==)(α::Cyclotomic{T}, x::R) where {T,R<:Real} = α == Cyclotomic(1, [x])
+Base.:(==)(α::Cyclotomic{T}, x::R) where {T,R<:Real} = α == Cyclotomic([x])
 Base.:(==)(x::Real, α::Cyclotomic) = α == x
 
 function Base.isapprox(α::Cyclotomic, a::Real; kwargs...)
@@ -44,7 +44,9 @@ end
 Base.isapprox(a::Number, α::Cyclotomic; kwargs...) = isapprox(α, a; kwargs...)
 
 function Base.iszero(α::Cyclotomic)
-    return all(iszero, values(α)) || (normalform!(α); all(iszero, values(α)))
+    all(iszero, values(α)) && return true
+    α = normalform!(α)
+    return all(iszero, values(α))
 end
 
 function Base.isreal(α::Cyclotomic)

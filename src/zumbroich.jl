@@ -147,7 +147,7 @@ import LRUCache
         Tuple{Int},
         Tuple{BitSet,ForbiddenResidues{Int}},
     }(
-        maxsize = 1000,
+        maxsize = 10000,
     ) function zumbroich_viacomplement(n::Int)
         return zumbroich_viacomplement(n, Primes.factor(n))
     end

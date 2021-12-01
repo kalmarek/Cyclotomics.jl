@@ -443,6 +443,15 @@ using Cyclotomics
         @test ComplexF64 == typeof(@inferred ComplexF64(y))
         @test ComplexF64 == typeof(@inferred ComplexF64(big(1) * x))
         @test ComplexF64 == typeof(@inferred ComplexF64(big(1) * y))
+
+        @test_logs (
+            :error,
+            "The cyclotomic is real but it can not be converted to Rational:  1*E(5)^2 + 1*E(5)^3 ≈ -1.618033988749895",
+        ) try
+            Rational(E(5)^2 + E(5)^3)
+        catch ex
+            @test ex isa InexactError
+        end
     end
 
     @testset "Complex arithmetic" begin
@@ -454,6 +463,8 @@ using Cyclotomics
 
         @test E(4) * im == -1
         @test E(4) - im == 0
+
+        @test E(9) + im // 3 isa Cyclotomic
     end
 
     @testset "dense/sparse" begin
@@ -470,5 +481,25 @@ using Cyclotomics
         @test coeffs(Cyclotomics.dense(x)) isa Vector
 
         @test x == y
+    end
+
+    @testset "_enable_intermediate_normalization" begin
+        function testmat(p)
+            ss = [[i, j] for i in 0:p-1 for j in i+1:p-1]
+            return [
+                (E(p, i' * reverse(j)) - E(p, i' * j)) // p for i in ss, j in ss
+            ]
+        end
+
+        M = testmat(6)
+
+        val = Cyclotomics._enable_intermediate_normalization()
+        Cyclotomics._enable_intermediate_normalization() = true
+        @test isone(inv(M) * M)
+
+        Cyclotomics._enable_intermediate_normalization() = false
+        @test_throws OverflowError isone(inv(M) * M)
+
+        Cyclotomics._enable_intermediate_normalization() = val
     end
 end
