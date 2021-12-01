@@ -176,6 +176,8 @@ end
     end
 end
 
+coprimes(n::Integer) = BitSet(i for i in 1:n if gcd(i, n) == 1)
+
 function inv!(
     out::Cyclotomic{T},
     α::Cyclotomic,
