@@ -161,7 +161,7 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
         γ = 2 * T(π) * T(e) / n
         z += T(c) * (cos(γ) + im * sin(γ))
     end
-    return z
+    return ifelse(n==1 || rα == conj(rα), real(z)+zero(T)im, z)
 end
 
 Base.complex(α::Cyclotomic{T}) where {T} = Complex{float(T)}(α)
@@ -199,7 +199,7 @@ function Base.Rational{T}(α::Cyclotomic) where {T}
     if isreal(rα)
         @error "The cyclotomic is real but it can not be converted to Rational: $rα ≈ $(float(rα))"
     end
-    return throw(InexactError(:Rational, Rational{T}, α))
+    return throw(InexactError(:convert, Rational{T}, α))
 end
 
 Base.Rational(α::Cyclotomic{T}) where {T<:Integer} = Rational{T}(α)
