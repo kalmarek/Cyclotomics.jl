@@ -495,11 +495,11 @@ using Cyclotomics
 
         val = Cyclotomics._enable_intermediate_normalization()
         Cyclotomics._enable_intermediate_normalization() = true
-        @test isone(inv(M)*M)
+        @test isone(inv(M) * M)
 
         Cyclotomics._enable_intermediate_normalization() = false
-        @test_throws OverflowError isone(inv(M)*M)
+        @test_throws OverflowError isone(inv(M) * M)
 
-        Cyclotomics._enable_intermediate_normalization() = val;
+        Cyclotomics._enable_intermediate_normalization() = val
     end
 end

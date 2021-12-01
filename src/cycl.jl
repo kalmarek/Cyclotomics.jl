@@ -161,7 +161,7 @@ function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
         γ = 2 * T(π) * T(e) / n
         z += T(c) * (cos(γ) + im * sin(γ))
     end
-    return ifelse(n==1 || rα == conj(rα), real(z)+zero(T)im, z)
+    return ifelse(n == 1 || rα == conj(rα), real(z) + zero(T)im, z)
 end
 
 Base.complex(α::Cyclotomic{T}) where {T} = Complex{float(T)}(α)
