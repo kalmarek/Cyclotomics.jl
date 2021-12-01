@@ -75,7 +75,6 @@ function _maybe_normalize!(
     α::Cyclotomic{<:Rational{T}},
 ) where {T<:Base.BitInteger}
 
-    # if false
     if _enable_intermediate_normalization() && !isnormalized(α)
         k = (typemax(T) >> 4 * sizeof(T))
         for v in values(α)
@@ -118,12 +117,17 @@ end
 for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
     @eval begin
         function Base.$op(α::Cyclotomic{T}, β::Cyclotomic{S}) where {T,S}
-            if conductor(α) == conductor(β)
-                return $fn(similar(α, promote_type(T, S)), α, β)
-            else
-                l = lcm(conductor(α), conductor(β))
-                return $op(embed(α, l), embed(β, l))
+
+            if _enable_intermediate_normalization()
+                α, β = reduced_embedding(α), reduced_embedding(β)
             end
+
+            if conductor(α) != conductor(β)
+                l = lcm(conductor(α), conductor(β))
+                α, β = embed(α, l), embed(β, l)
+            end
+            
+            return $fn(similar(α, promote_type(T, S)), α, β)
         end
     end
 end
