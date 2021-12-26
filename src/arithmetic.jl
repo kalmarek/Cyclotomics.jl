@@ -52,7 +52,7 @@ Base.:(/)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) ./ c)
 
 function Base.div(α::Cyclotomic{T}, c::Number) where {T}
     RT = Base._return_type(div, (T, typeof(c)))
-    rα = reduced_embedding(α)
+    rα = isone(conductor(α)) ? α : reduced_embedding(α)
     return div!(similar(rα, RT), rα, c)
 end
 
@@ -117,7 +117,8 @@ for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
     @eval begin
         function Base.$op(α::Cyclotomic{T}, β::Cyclotomic{S}) where {T,S}
             if _enable_intermediate_normalization()
-                α, β = reduced_embedding(α), reduced_embedding(β)
+                α = isone(conductor(α)) ? α : reduced_embedding(α)
+                β = isone(conductor(β)) ? β : reduced_embedding(β)
             end
 
             if conductor(α) != conductor(β)
@@ -157,7 +158,7 @@ function galois_conj(α::Cyclotomic, n::Integer = -1)
 end
 
 function Base.inv(α::Cyclotomic{T}) where {T}
-    rα = reduced_embedding(α)
+    rα = isone(conductor(α)) ? α : reduced_embedding(α)
     RT = Base._return_type(inv, (T,))
     return inv!(similar(rα, RT), rα)
 end
