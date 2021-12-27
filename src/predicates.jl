@@ -5,7 +5,7 @@ A basic hashing function for cyclotomic elements; Note that unlike the `Base` ty
 This is to keep `hash`ing consistent and reliable with respect to `==`, i.e. that the equality of elements implies the equality of `hash`es.
 """
 function Base.hash(α::Cyclotomic, h::UInt)
-    β = reduced_embedding(α)
+    β = isone(conductor(α)) ? α : reduced_embedding(α)
     return hash(coeffs(β), hash(conductor(β), hash(Cyclotomic, h)))
 end
 
@@ -50,15 +50,17 @@ function Base.iszero(α::Cyclotomic)
 end
 
 function Base.isreal(α::Cyclotomic)
+    isone(conductor(α)) && return true
     return α == conj(α) || conductor(reduced_embedding(α)) == 1
 end
 
 function Base.isreal(α::Cyclotomic{T}) where {T<:AbstractFloat}
+    isone(conductor(α)) && return true
     return α ≈ conj(α) || conductor(reduced_embedding(α)) == 1
 end
 
 function Base.isone(α::Cyclotomic)
-    β = reduced_embedding(α)
+    β = isone(conductor(α)) ? α : reduced_embedding(α)
     conductor(β) == 1 || return false
     return isone(β[0])
 end

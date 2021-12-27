@@ -154,14 +154,16 @@ function roundcoeffs!(
 end
 
 function Base.Complex{T}(α::Cyclotomic) where {T<:AbstractFloat}
-    z = zero(Complex{T})
+    isone(conductor(α)) && return Complex{T}(α[0])
     rα = reduced_embedding(α)
+    isone(conductor(rα)) && return Complex{T}(rα[0])
     n = conductor(rα)
+    z = zero(Complex{T})
     for (e, c) in exps_coeffs(rα)
         γ = 2 * T(π) * T(e) / n
         z += T(c) * (cos(γ) + im * sin(γ))
     end
-    return ifelse(n == 1 || rα == conj(rα), real(z) + zero(T)im, z)
+    return ifelse(rα == conj(rα), real(z) + zero(T)im, z)
 end
 
 Base.complex(α::Cyclotomic{T}) where {T} = Complex{float(T)}(α)
@@ -188,12 +190,14 @@ function _isreal(α::Cyclotomic)
 end
 
 function Base.Int(α::Cyclotomic)
+    isone(conductor(α)) && return Int(α[0])
     flag, rα = _isreal(α)
     flag && return Int(rα[0])
     return throw(InexactError(:Int, Int, α))
 end
 
 function Base.Rational{T}(α::Cyclotomic) where {T}
+    isone(conductor(α)) && return Rational{T}(α[0])
     flag, rα = _isreal(α)
     flag && return Rational{T}(rα[0])
     if isreal(rα)
