@@ -171,16 +171,6 @@ function inv!(
     return out
 end
 
-@static if VERSION >= v"1.2.0"
-    Memoize.@memoize LRUCache.LRU{Tuple{Int},BitSet}(maxsize = 10000) function coprimes(
-        n::Int,
-    )
-        return BitSet(i for i in 1:n if gcd(i, n) == 1)
-    end
-end
-
-coprimes(n::Integer) = BitSet(i for i in 1:n if gcd(i, n) == 1)
-
 function inv!(
     out::Cyclotomic{T},
     α::Cyclotomic,
@@ -197,7 +187,7 @@ function inv!(
         basis_fb = zumbroich_viacomplement(conductor(α))
 
         # begin
-        #     A1 = [conj(α, i) for i in coprimes(conductor(α))]
+        #     A1 = [conj(α, i) for i in _coprimes(conductor(α))]
         #     A2 = [normalform!(c, tmp, basis_forbidden = basis_fb) for c in A1]
         #     conjugates = unique!(coeffs, A2)
         #     normalform!(α, tmp, basis_forbidden=basis_fb)
@@ -210,7 +200,7 @@ function inv!(
         #     normalform!(out, tmp, basis_forbidden=basis_fb)
         # end
 
-        for i in coprimes(conductor(α))
+        for i in _coprimes(conductor(α))
             i < 2 && continue
             mul!(tmp2, out, conj!(tmp, α, i))
             copyto!(coeffs(out), coeffs(tmp2))
@@ -233,5 +223,6 @@ function inv!(
 
     return _maybe_normalize!(out)
 end
+_coprimes(n::Integer) = BitSet(i for i in 2:n if gcd(i, n) == 1)
 
 Base.:/(α::Cyclotomic, β::Cyclotomic) = α * inv(β)

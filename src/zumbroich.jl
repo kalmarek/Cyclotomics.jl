@@ -139,20 +139,6 @@ function zumbroich_viacomplement(n::Integer, factor_n::Primes.Factorization)
     return exps, forbidden
 end
 
-import Memoize
-import LRUCache
-
-@static if VERSION >= v"1.2.0"
-    Memoize.@memoize LRUCache.LRU{
-        Tuple{Int},
-        Tuple{BitSet,ForbiddenResidues{Int}},
-    }(
-        maxsize = 10000,
-    ) function zumbroich_viacomplement(n::Int)
-        return zumbroich_viacomplement(n, Primes.factor(n))
-    end
-end
-
 function zumbroich_viacomplement(n::Integer)
     return zumbroich_viacomplement(n, Primes.factor(n))
 end
