@@ -69,33 +69,41 @@ end
 ###########################
 # Ring structure:
 
-_enable_intermediate_normalization() = false
+_enable_intermediate_reduction() = false
 
-function _maybe_normalize!(
+function _maybe_reduce(
     α::Cyclotomic{<:Rational{T}},
 ) where {T<:Base.BitInteger}
-    if _enable_intermediate_normalization() && !isnormalized(α)
-        k = (typemax(T) >> 4 * sizeof(T))
-        for v in values(α)
+    reduce = false
+    if _enable_intermediate_reduction()
+        k = (typemax(T) >> 4sizeof(T))
+        reduce = any(values(α)) do v
             z = abs(v)
-            if max(numerator(z), denominator(z)) > k
-                normalform!(α)
-                break
-            end
+            max(numerator(z), denominator(z)) > k
         end
     end
-    return α
+    return normalform!(reduce ? reduced_embedding(α) : α)
 end
 
-_maybe_normalize!(α::Cyclotomic) = α
+_maybe_reduce(α::Cyclotomic) = α
+
+function common_embedding(α::Cyclotomic, β::Cyclotomic)
+    conductor(α) == conductor(β) && return α, β
+    α = _maybe_reduce(α)
+    β = _maybe_reduce(β)
+
+    l = lcm(conductor(α), conductor(β))
+    α, β = embed(α, l), embed(β, l)
+    return α, β
+end
 
 function add!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic)
     coeffs(out) .= coeffs(α) .+ coeffs(β)
-    return _maybe_normalize!(out)
+    return out
 end
 function sub!(out::Cyclotomic, α::Cyclotomic, β::Cyclotomic)
     coeffs(out) .= coeffs(α) .- coeffs(β)
-    return _maybe_normalize!(out)
+    return out
 end
 
 function mul!(out::Cyclotomic{T}, α::Cyclotomic, β::Cyclotomic) where {T}
@@ -110,22 +118,17 @@ function mul!(out::Cyclotomic{T}, α::Cyclotomic, β::Cyclotomic) where {T}
         end
     end
 
-    return _maybe_normalize!(out)
+    return out
 end
 
 for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
     @eval begin
         function Base.$op(α::Cyclotomic{T}, β::Cyclotomic{S}) where {T,S}
-            if _enable_intermediate_normalization()
-                α = isone(conductor(α)) ? α : reduced_embedding(α)
-                β = isone(conductor(β)) ? β : reduced_embedding(β)
+            if _enable_intermediate_reduction()
+                α = isone(conductor(α)) ? α : _maybe_reduce(α)
+                β = isone(conductor(β)) ? β : _maybe_reduce(β)
             end
-
-            if conductor(α) != conductor(β)
-                l = lcm(conductor(α), conductor(β))
-                α, β = embed(α, l), embed(β, l)
-            end
-
+            α, β = common_embedding(α, β)
             return $fn(similar(α, promote_type(T, S)), α, β)
         end
     end
@@ -183,6 +186,8 @@ function inv!(
         out = one!(out)
     end
 
+    α = _maybe_reduce(α)
+
     let α = α
         basis_fb = zumbroich_viacomplement(conductor(α))
 
@@ -216,12 +221,13 @@ function inv!(
 
         # however we don't necessarily take product of all of them as visible in the loop above;
 
-        norm_𝕂 = reduced_embedding(mul!(tmp, out, α))
-        out = mul!(tmp, out, inv(norm_𝕂[0]))
-        copyto!(coeffs(out), coeffs(tmp))
+        # @info reduced_embedding(out) == out
+
+        norm_𝕂 = reduced_embedding(reduced_embedding(out)*α)[0]
+        out *= inv(norm_𝕂)
     end
 
-    return _maybe_normalize!(out)
+    return _maybe_reduce(out)
 end
 _coprimes(n::Integer) = BitSet(i for i in 2:n if gcd(i, n) == 1)
 
