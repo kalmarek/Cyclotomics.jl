@@ -50,8 +50,8 @@ Base.:*(α::Cyclotomic, c::T) where {T<:Real} = c * α
 Base.:(//)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) .// c)
 Base.:(/)(α::Cyclotomic, c::Real) = Cyclotomic(coeffs(α) ./ c)
 
-function Base.div(α::Cyclotomic{T}, c::Number) where {T}
-    RT = Base._return_type(div, (T, typeof(c)))
+function Base.div(α::Cyclotomic, c::Number)
+    RT = Base._return_type(div, Tuple{valtype(α),typeof(c)})
     rα = isone(conductor(α)) ? α : reduced_embedding(α)
     return div!(similar(rα, RT), rα, c)
 end
@@ -173,9 +173,9 @@ function galois_conj(α::Cyclotomic, n::Integer = -1)
     return conj(α, n)
 end
 
-function Base.inv(α::Cyclotomic{T}) where {T}
+function Base.inv(α::Cyclotomic)
     rα = isone(conductor(α)) ? α : reduced_embedding(α)
-    RT = Base._return_type(inv, (T,))
+    RT = Base._return_type(inv, Tuple{valtype(α)})
     return inv!(similar(rα, RT), rα)
 end
 
