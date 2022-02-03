@@ -87,13 +87,15 @@ end
 
 _maybe_reduce(α::Cyclotomic) = α
 
-function common_embedding(α::Cyclotomic, β::Cyclotomic)
+function common_embedding(α::Cyclotomic, β::Cyclotomic; reduced=true)
+    if reduced
+        α = reduced_embedding(α)
+        β = reduced_embedding(β)
+    end
     conductor(α) == conductor(β) && return α, β
-    α = _maybe_reduce(α)
-    β = _maybe_reduce(β)
-
     l = lcm(conductor(α), conductor(β))
-    α, β = embed(α, l), embed(β, l)
+    α = (l == conductor(α) ? α : embed(α, l))
+    β = (l == conductor(β) ? β : embed(β, l))
     return α, β
 end
 
@@ -124,12 +126,14 @@ end
 for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
     @eval begin
         function Base.$op(α::Cyclotomic{T}, β::Cyclotomic{S}) where {T,S}
-            if _enable_intermediate_reduction()
-                α = isone(conductor(α)) ? α : _maybe_reduce(α)
-                β = isone(conductor(β)) ? β : _maybe_reduce(β)
+            α = _maybe_reduce(α)
+            β = _maybe_reduce(β)
+            α, β = common_embedding(α, β, reduced=false)
+            @assert conductor(α) == conductor(β)
+            U = promote_type(T, S)
+            res = similar(α, U)
+            return $fn(res, α, β)
             end
-            α, β = common_embedding(α, β)
-            return $fn(similar(α, promote_type(T, S)), α, β)
         end
     end
 end
