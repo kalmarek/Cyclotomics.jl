@@ -491,15 +491,15 @@ using Cyclotomics
             ]
         end
 
-        M = testmat(6)
+        M = testmat(8)
 
-        val = Cyclotomics._enable_intermediate_normalization()
-        Cyclotomics._enable_intermediate_normalization() = true
+        val = Cyclotomics._enable_intermediate_reduction()
+        Cyclotomics._enable_intermediate_reduction() = true
         @test isone(inv(M) * M)
 
-        Cyclotomics._enable_intermediate_normalization() = false
+        Cyclotomics._enable_intermediate_reduction() = false
         @test_throws OverflowError isone(inv(M) * M)
 
-        Cyclotomics._enable_intermediate_normalization() = val
+        Cyclotomics._enable_intermediate_reduction() = val
     end
 end

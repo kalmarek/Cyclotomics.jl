@@ -81,28 +81,34 @@ than the conductor of `α`, however either `conductor(α)` must divide `m`, or
 the other way around.
 """
 function embed(α::Cyclotomic, m::Integer)
-    conductor(α) == m && return deepcopy(α)
-    if conductor(α) > m
-        @assert conductor(α) % m == 0 "Embeding of ℚ(ζ$(subscriptify(m))) ↪ ℚ(ζ$(subscriptify(conductor(α)))) is not possible."
+    cα = conductor(α)
+    if cα == m
+        T = valtype(α)
+        return isbitstype(T) ? Cyclotomic(copy(coeffs(α))) : deepcopy(α)
+    elseif cα > m
+        @assert conductor(α) % m == 0 "Embeding of ℚ(ζ$(subscriptify(m))) ↪ ℚ(ζ$(subscriptify(cα))) is not possible."
         return reduced_embedding(α, m)
     else
-        k, _r = divrem(m, conductor(α))
-        @assert _r == 0 "Embeding of ℚ(ζ$(subscriptify(conductor(α)))) ↪ ℚ(ζ$(subscriptify(m))) is not possible."
+        begin
+            k, _r = divrem(m, cα)
+            @assert _r == 0 "Embeding of ℚ(ζ$(subscriptify(cα))) ↪ ℚ(ζ$(subscriptify(m))) is not possible."
 
-        res = zero!(similar(α, valtype(α), m))
+            res = zero!(similar(α, valtype(α), m))
 
-        @inbounds for e in exponents(α)
-            res[e*k] = α[e]
+            @inbounds for (e, v) in exps_coeffs(α)
+                res[e*k] = v
+            end
         end
         return res
     end
 end
 
 function _tmp_for_reduced_embedding(α::Cyclotomic{T}) where {T}
-    all(iszero, exponents(α)) && return Cyclotomic{T,Vector{T}}([α[0]])
+    exps = collect(exponents(α))
+    all(iszero, exps) && return Cyclotomic{T,Vector{T}}([α[0]])
 
-    k = gcd(conductor(α), exponents(α)...)
     @debug "gcd(exponents(α)) = $k" collect(exponents(α))
+    k = gcd(push!(exps, conductor(α)))
 
     tmp = if k > 1
         d = div(conductor(α), k)

@@ -12,4 +12,5 @@ include("arithmetic.jl")
 include("normalform.jl")
 include("io.jl")
 
+include("memoization.jl")
 end # of module Cyclotomics
