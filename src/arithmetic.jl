@@ -71,18 +71,18 @@ end
 
 _enable_intermediate_reduction() = false
 
-function _maybe_reduce(
-    α::Cyclotomic{<:Rational{T}},
-) where {T<:Base.BitInteger}
-    reduce = false
-    if _enable_intermediate_reduction()
-        k = (typemax(T) >> 4sizeof(T))
-        reduce = any(values(α)) do v
-            z = abs(v)
-            max(numerator(z), denominator(z)) > k
+function _maybe_reduce(α::Cyclotomic{<:Rational{T}}) where {T<:Base.BitInteger}
+    _enable_intermediate_reduction() || return α
+    conductor(α) > 1 || return α
+
+    k = (typemax(T) >> 4sizeof(T))
+    for v in values(α)
+        z = abs(v)
+        if max(numerator(z), denominator(z)) > k
+            return normalform!(reduced_embedding(α))
         end
     end
-    return normalform!(reduce ? reduced_embedding(α) : α)
+    return α
 end
 
 _maybe_reduce(α::Cyclotomic) = α
