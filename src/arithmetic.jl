@@ -132,7 +132,16 @@ for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
             @assert conductor(α) == conductor(β)
             U = promote_type(T, S)
             res = similar(α, U)
-            return $fn(res, α, β)
+            try
+                $fn(res, α, β)
+            catch err
+                @debug "overflow thrown, trying to reduce/normalize arguments!"
+                if err isa OverflowError
+                    α, β = normalform!.(common_embedding(α, β, reduced=true))
+                    $fn(res, α, β)
+                else
+                    rethrow(err)
+                end
             end
         end
     end
