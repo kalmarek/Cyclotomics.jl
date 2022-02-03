@@ -87,7 +87,7 @@ end
 
 _maybe_reduce(α::Cyclotomic) = α
 
-function common_embedding(α::Cyclotomic, β::Cyclotomic; reduced=true)
+function common_embedding(α::Cyclotomic, β::Cyclotomic; reduced = true)
     if reduced
         α = reduced_embedding(α)
         β = reduced_embedding(β)
@@ -128,7 +128,7 @@ for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
         function Base.$op(α::Cyclotomic{T}, β::Cyclotomic{S}) where {T,S}
             α = _maybe_reduce(α)
             β = _maybe_reduce(β)
-            α, β = common_embedding(α, β, reduced=false)
+            α, β = common_embedding(α, β, reduced = false)
             @assert conductor(α) == conductor(β)
             U = promote_type(T, S)
             res = similar(α, U)
@@ -137,7 +137,7 @@ for (op, fn) in ((:+, :add!), (:-, :sub!), (:*, :mul!))
             catch err
                 @debug "overflow thrown, trying to reduce/normalize arguments!"
                 if err isa OverflowError
-                    α, β = normalform!.(common_embedding(α, β, reduced=true))
+                    α, β = normalform!.(common_embedding(α, β, reduced = true))
                     $fn(res, α, β)
                 else
                     rethrow(err)
@@ -236,7 +236,7 @@ function inv!(
 
         # @info reduced_embedding(out) == out
 
-        norm_𝕂 = reduced_embedding(normalform!(out)*α)[0]
+        norm_𝕂 = reduced_embedding(normalform!(out) * α)[0]
         w = out * inv(norm_𝕂)
         return _maybe_reduce(w)
     end
