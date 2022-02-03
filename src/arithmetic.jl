@@ -236,8 +236,9 @@ function inv!(
 
         # @info reduced_embedding(out) == out
 
-        norm_𝕂 = reduced_embedding(reduced_embedding(out)*α)[0]
-        out *= inv(norm_𝕂)
+        norm_𝕂 = reduced_embedding(normalform!(out)*α)[0]
+        w = out * inv(norm_𝕂)
+        return _maybe_reduce(w)
     end
 
     return _maybe_reduce(out)
